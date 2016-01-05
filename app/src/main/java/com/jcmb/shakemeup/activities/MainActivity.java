@@ -21,9 +21,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -32,7 +32,9 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.connection.Requests;
+import com.jcmb.shakemeup.interfaces.OnAddressRequestCompleteListener;
 import com.jcmb.shakemeup.interfaces.OnPlacesRequestCompleteListener;
+import com.jcmb.shakemeup.places.AddressParser;
 import com.jcmb.shakemeup.places.PlaceParser;
 import com.jcmb.shakemeup.util.ShakeDetector;
 
@@ -47,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private CoordinatorLayout rootView;
 
     private Location currentLocation;
+    private String currentAddress;
 
     private ShakeDetector shakeDetector;
     private SensorManager sensorManager;
@@ -246,6 +249,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     if(id != null)
                     {
                         Intent intent = new Intent(MainActivity.this, PlaceActivity.class);
+                        intent.putExtra(PlaceActivity.PICKUP_LATITUDE, currentLocation.getLatitude());
+                        intent.putExtra(PlaceActivity.PICKUP_LONGITUDE, currentLocation.getLongitude());
+                        intent.putExtra(PlaceActivity.PICKUP_ADDRESS, currentAddress);
                         intent.putExtra(PlaceActivity.PLACE_ID, id);
                         startActivity(intent);
                     }
@@ -274,7 +280,30 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onLocationChanged(Location location) {
 
         currentLocation = location;
+
+        getCurrentAddress();
+
         LocationServices.FusedLocationApi.removeLocationUpdates(apiClient, this);
         Snackbar.make(rootView, "Got location", Snackbar.LENGTH_LONG).show();
+    }
+
+    private void getCurrentAddress() {
+        OnAddressRequestCompleteListener onAddressRequestCompleteListener =
+                new OnAddressRequestCompleteListener() {
+            @Override
+            public void onSuccess(JSONObject jsonResponse) {
+                currentAddress = AddressParser.getAddress(jsonResponse);
+
+                Log.d(MainActivity.class.getSimpleName(), "" + currentAddress);
+            }
+
+            @Override
+            public void onFail() {
+                Log.e(MainActivity.class.getSimpleName(), "Error getting current location address");
+            }
+        };
+
+        Requests.getAddressByLatLong(currentLocation.getLatitude(),
+                currentLocation.getLongitude(), onAddressRequestCompleteListener);
     }
 }

@@ -5,20 +5,24 @@ import android.graphics.Bitmap;
 import android.support.v4.content.AsyncTaskLoader;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.places.PlacePhotoMetadata;
 import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
 import com.google.android.gms.location.places.PlacePhotoMetadataResult;
+import com.google.android.gms.location.places.PlacePhotoResult;
 import com.google.android.gms.location.places.Places;
 
 /**
  * @author Julio Mendoza on 12/31/15.
  */
-public class PlacePhotoLoader extends AsyncTaskLoader<Bitmap> {
+public class PlacePhotoLoader extends AsyncTaskLoader<Object> {
 
 
     private String placeId;
 
     private GoogleApiClient apiClient;
+
+    private ResultCallback<PlacePhotoResult> photoResultCallback;
 
     /**
      * Stores away the application context associated with context.
@@ -34,16 +38,16 @@ public class PlacePhotoLoader extends AsyncTaskLoader<Bitmap> {
         super(context);
     }
 
-    public void initialize(GoogleApiClient apiClient, String placeId)
+    public void initialize(GoogleApiClient apiClient, String placeId,
+                           ResultCallback<PlacePhotoResult> photoResultCallback)
     {
         this.placeId = placeId;
         this.apiClient = apiClient;
+        this.photoResultCallback = photoResultCallback;
     }
 
     @Override
-    public Bitmap loadInBackground() {
-
-        Bitmap image = null;
+    public Object loadInBackground() {
 
         if(apiClient != null && apiClient.isConnected())
         {
@@ -54,22 +58,20 @@ public class PlacePhotoLoader extends AsyncTaskLoader<Bitmap> {
             {
                 PlacePhotoMetadataBuffer photoMetadataBuffer = result.getPhotoMetadata();
 
-                PlacePhotoMetadata photo = photoMetadataBuffer.get(0);
-                photoMetadataBuffer.release();
-
-                if(photo != null)
+                if(photoMetadataBuffer.getCount() > 0)
                 {
-                    image = photo.getPhoto(apiClient).await()
-                            .getBitmap();
+                    PlacePhotoMetadata photo = photoMetadataBuffer.get(0);
+                    if(photo != null)
+                    {
+                        photo.getPhoto(apiClient).setResultCallback(photoResultCallback);
 //                CharSequence attribution = photo.getAttributions();
+                    }
                 }
 
+                photoMetadataBuffer.release();
             }
-
         }
-
-
-        return image;
+        return null;
     }
 
 
