@@ -11,6 +11,7 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -58,6 +59,8 @@ public class PlaceActivity extends AppCompatActivity
 
     private TextView tvByline;
 
+    private TextView tvPriceRange;
+
     private RequestButton rqButton;
 
     @Override
@@ -75,6 +78,10 @@ public class PlaceActivity extends AppCompatActivity
         rqButton = (RequestButton)findViewById(R.id.rqButton);
 
         rbPlace = (RatingBar)findViewById(R.id.rbPlace);
+
+        tvByline = (TextView)findViewById(R.id.tvByline);
+
+        tvPriceRange = (TextView)findViewById(R.id.tvPriceRange);
 
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null)
@@ -155,7 +162,11 @@ public class PlaceActivity extends AppCompatActivity
 
                             rbPlace.setRating(place.getRating());
 
-                            tvByline.setText("" + place.getAddress().toString());
+                            tvByline.setText(place.getAddress());
+
+                            String priceRange = parsePriceRange(place.getPriceLevel());
+
+                            tvPriceRange.setText(Html.fromHtml(priceRange));
 
                             initializeUberButton();
                         }
@@ -164,6 +175,31 @@ public class PlaceActivity extends AppCompatActivity
                 });
 
         getSupportLoaderManager().initLoader(0, null, this).forceLoad();
+    }
+
+    private String parsePriceRange(int priceLevel) {
+        priceLevel = priceLevel == -1 ? 0 : priceLevel;
+
+        String priceRange = null;
+        switch (priceLevel)
+        {
+            case 0:
+                priceRange = String.format(getString(R.string.price_range_format), "$", "$$$$");
+                break;
+            case 1:
+                priceRange = String.format(getString(R.string.price_range_format), "$$", "$$$");
+                break;
+            case 2:
+                priceRange = String.format(getString(R.string.price_range_format), "$$$", "$$");
+                break;
+            case 3:
+                priceRange = String.format(getString(R.string.price_range_format), "$$$$", "$");
+                break;
+            case 4:
+                priceRange = String.format(getString(R.string.price_range_format), "", "$$$$$");
+                break;
+        }
+        return priceRange;
     }
 
     private void initializeUberButton() {

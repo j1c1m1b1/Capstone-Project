@@ -96,5 +96,10 @@
 
     <string name="places_server_api_key" translatable="false">AIzaSyCuexRsZ-WRaWiQyxygNeySjaR_gX-Z8T4</string>
     <string name="uber_client_id" translatable="false">2Js3Bb3d5f5MMSz0–8iRCP7pRyBiRduC</string>
+    <string name="foursquare_client_id">JDMFQCP200BPJXX30YF2AIN4WJKWNQPLDTRY4CN01SZPXUAF</string>
+    <string name="foursquare_client_secret">KGX30YDQZHBG1XJ5011UPJ4Q5FHVIXDLSQMYJJHYYDENNVAZ</string>
+
+
     <string name="price_range">Price range</string>
+    <string name="price_range_format">&#60;font color=#75d972&#62;%1$s&#60;/font&#62;&#60;font color=#C1C1C1 &#62;%2$s&#60;/font&#62;</string>
 </resources>
