@@ -32,6 +32,11 @@
                 android:scaleType="centerCrop"
                 app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed"/>
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/scrim"/>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

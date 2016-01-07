@@ -4,4 +4,6 @@
     <color name="colorPrimaryDark">#000000</color>
     <color name="colorAccent">#40C4FF</color>
     <color name="white">#FFFFFF</color>
+    <color name="scrim_start">#30000000</color>
+    <color name="scrim_end">#00000000</color>
 </resources>

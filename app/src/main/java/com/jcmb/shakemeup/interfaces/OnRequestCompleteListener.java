@@ -3,9 +3,9 @@ package com.jcmb.shakemeup.interfaces;
 import org.json.JSONObject;
 
 /**
- * @author Julio Mendoza on 12/31/15.
+ * @author Julio Mendoza on 1/5/16.
  */
-public interface OnPlacesRequestCompleteListener {
+public interface OnRequestCompleteListener {
 
     void onSuccess(JSONObject jsonResponse);
 

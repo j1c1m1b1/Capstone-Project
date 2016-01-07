@@ -32,10 +32,8 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.connection.Requests;
-import com.jcmb.shakemeup.interfaces.OnAddressRequestCompleteListener;
-import com.jcmb.shakemeup.interfaces.OnPlacesRequestCompleteListener;
-import com.jcmb.shakemeup.places.AddressParser;
-import com.jcmb.shakemeup.places.PlaceParser;
+import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
+import com.jcmb.shakemeup.places.Parser;
 import com.jcmb.shakemeup.util.ShakeDetector;
 
 import org.json.JSONObject;
@@ -240,11 +238,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     {
         if(currentLocation != null)
         {
-            Requests.searchPlacesNearby(currentLocation, this, new OnPlacesRequestCompleteListener() {
+            Requests.searchPlacesNearby(currentLocation, this, new OnRequestCompleteListener() {
                 @Override
                 public void onSuccess(JSONObject jsonResponse) {
 
-                    String id = PlaceParser.getPlaceId(jsonResponse);
+                    String id = Parser.getPlaceId(jsonResponse);
 
                     if(id != null)
                     {
@@ -288,13 +286,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     private void getCurrentAddress() {
-        OnAddressRequestCompleteListener onAddressRequestCompleteListener =
-                new OnAddressRequestCompleteListener() {
+        OnRequestCompleteListener onRequestCompleteListener =
+                new OnRequestCompleteListener() {
             @Override
             public void onSuccess(JSONObject jsonResponse) {
-                currentAddress = AddressParser.getAddress(jsonResponse);
-
-                Log.d(MainActivity.class.getSimpleName(), "" + currentAddress);
+                currentAddress = Parser.getAddress(jsonResponse);
             }
 
             @Override
@@ -304,6 +300,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         };
 
         Requests.getAddressByLatLong(currentLocation.getLatitude(),
-                currentLocation.getLongitude(), onAddressRequestCompleteListener);
+                currentLocation.getLongitude(), onRequestCompleteListener);
     }
 }
