@@ -103,4 +103,6 @@
     <string name="price_range">Price range</string>
     <string name="price_range_format">&#60;font color=#75d972&#62;%1$s&#60;/font&#62;&#60;font color=#C1C1C1 &#62;%2$s&#60;/font&#62;</string>
     <string name="distance">Estimated travel time</string>
+    <string name="profile_image">Profile image</string>
+    <string name="business_info">More business info</string>
 </resources>

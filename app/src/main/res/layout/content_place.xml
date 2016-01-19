@@ -66,25 +66,61 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginTop="16dp"
-            android:layout_weight="1">
+            android:layout_height="wrap_content">
 
-            <fragment
-                android:id="@+id/map"
-                class="com.google.android.gms.maps.SupportMapFragment"
+            <LinearLayout
+                android:id="@+id/layoutVenue"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-            <com.uber.sdk.android.rides.RequestButton
-                android:id="@+id/rqButton"
+                <TextView
+                    android:id="@+id/tvBusinessInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:text="@string/business_info"
+                    android:textColor="@color/colorAccent"/>
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/rvPhotos"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"/>
+
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/pbLoading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|center_horizontal"
-                android:layout_marginBottom="8dp"
-                android:enabled="false"
-                uber:client_id="@string/uber_client_id"
-                uber:style="black"/>
+                android:layout_gravity="center"
+                />
+
         </FrameLayout>
-    </LinearLayout>
-</android.support.v4.widget.NestedScrollView>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_weight="1">
+
+        <fragment
+            android:id="@+id/map"
+            class="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <com.uber.sdk.android.rides.RequestButton
+            android:id="@+id/rqButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="8dp"
+            android:enabled="false"
+            uber:client_id="@string/uber_client_id"
+            uber:style="black"/>
+    </FrameLayout>
+</LinearLayout>
+    </android.support.v4.widget.NestedScrollView>
