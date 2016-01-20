@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
@@ -15,9 +16,12 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -25,6 +29,7 @@ import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -42,16 +47,21 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.jcmb.shakemeup.R;
+import com.jcmb.shakemeup.adapters.VenuePhotosAdapter;
 import com.jcmb.shakemeup.connection.Requests;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
+import com.jcmb.shakemeup.interfaces.OnVenuesRequestCompleteListener;
 import com.jcmb.shakemeup.places.Parser;
 import com.jcmb.shakemeup.places.PlacePhotoLoader;
+import com.jcmb.shakemeup.places.Tip;
+import com.jcmb.shakemeup.places.Venue;
 import com.jcmb.shakemeup.util.ShakeDetector;
 import com.uber.sdk.android.rides.RequestButton;
 import com.uber.sdk.android.rides.RideParameters;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -88,6 +98,8 @@ public class PlaceActivity extends AppCompatActivity
 
     private LinearLayout layoutVenue;
 
+    private RecyclerView rvPhotos;
+
     //Fields
 
     private GoogleApiClient apiClient;
@@ -110,13 +122,40 @@ public class PlaceActivity extends AppCompatActivity
     private SensorManager sensorManager;
     private Sensor accelerometer;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        initUI();
+
+        startApiClient();
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+
+        mapFragment.getMapAsync(this);
+
+        Intent intent = getIntent();
+
+        getIntentInfo(intent);
+
+        createLocationRequest();
+
+        startUpAccelerometer();
+    }
+
+    private void initUI()
+    {
         setContentView(R.layout.activity_place);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null)
+        {
+            actionBar.setDisplayShowTitleEnabled(true);
+        }
 
         toolbarLayout = (CollapsingToolbarLayout)findViewById(R.id.toolbar_layout);
 
@@ -136,25 +175,12 @@ public class PlaceActivity extends AppCompatActivity
 
         layoutVenue = (LinearLayout)findViewById(R.id.layoutVenue);
 
-        ActionBar actionBar = getSupportActionBar();
-        if(actionBar != null)
-        {
-            actionBar.setDisplayShowTitleEnabled(true);
-        }
+        rvPhotos = (RecyclerView)findViewById(R.id.rvPhotos);
+        RecyclerView.LayoutManager manager = new LinearLayoutManager(this,
+                LinearLayoutManager.HORIZONTAL, false);
 
-        startApiClient();
+        rvPhotos.setLayoutManager(manager);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-
-        mapFragment.getMapAsync(this);
-
-        Intent intent = getIntent();
-
-        getIntentInfo(intent);
-
-        createLocationRequest();
-
-        startUpAccelerometer();
     }
 
     private void startApiClient()
@@ -390,8 +416,11 @@ public class PlaceActivity extends AppCompatActivity
 
         final String clientSecret = getString(R.string.foursquare_client_secret);
 
+        Log.d(PlaceActivity.class.getSimpleName(), "Req Info: " + lat + ", " + lng
+         + ", " + placeName);
+
         Requests.getFoursquareVenuesAt(lat, lng, placeName, clientId, clientSecret,
-                new OnRequestCompleteListener() {
+                new OnVenuesRequestCompleteListener() {
             @Override
             public void onSuccess(JSONObject jsonResponse) {
                 String id = Parser.getVenueId(jsonResponse, placeName);
@@ -422,10 +451,12 @@ public class PlaceActivity extends AppCompatActivity
             public void onSuccess(JSONObject jsonResponse) {
                 Log.d(TAG, "Foursquare venue found: " + id);
 
+                final Venue venue = Parser.getVenue(jsonResponse);
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        layoutVenue.setVisibility(View.VISIBLE);
+                        refreshVenueUI(venue);
                     }
                 });
             }
@@ -435,6 +466,63 @@ public class PlaceActivity extends AppCompatActivity
                 Log.e(TAG, "There are no foursquare venues");
             }
         });
+    }
+
+    private void refreshVenueUI(Venue venue)
+    {
+        TextView tvBusinessInfo = (TextView)findViewById(R.id.tvBusinessInfo);
+        final String venueUrl = venue.getFoursquareUrl();
+        tvBusinessInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(venueUrl));
+                startActivity(intent);
+            }
+        });
+
+        LinearLayout layoutTips = (LinearLayout)findViewById(R.id.layoutTips);
+
+        if(layoutTips.getChildCount() == 0)
+        {
+            bindTipsToViews(layoutTips, venue.getTips());
+        }
+
+        VenuePhotosAdapter venuePhotosAdapter = new VenuePhotosAdapter(venue.getPhotos());
+        rvPhotos.setAdapter(venuePhotosAdapter);
+
+        layoutVenue.setVisibility(View.VISIBLE);
+
+    }
+
+    private void bindTipsToViews(LinearLayout layoutTips, ArrayList<Tip> tips)
+    {
+        LinearLayout viewItemTip;
+        ImageView ivUser;
+        TextView tvTip, tvUserName;
+
+        Tip tip;
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+
+
+        for(int i = 0; i < tips.size(); i ++)
+        {
+            viewItemTip = (LinearLayout) LayoutInflater.from(this)
+                    .inflate(R.layout.view_item_tip, layoutTips, false);
+            ivUser = (ImageView)viewItemTip.findViewById(R.id.ivUser);
+            tvTip = (TextView) viewItemTip.findViewById(R.id.tvTip);
+            tvUserName = (TextView) viewItemTip.findViewById(R.id.tvUserName);
+
+            tip = tips.get(i);
+
+            Glide.with(this).load(tip.getUserPhotoUrl()).into(ivUser);
+            tvTip.setText(tip.getText());
+            tvUserName.setText(tip.getUserName());
+            layoutTips.addView(viewItemTip, i, params);
+        }
     }
 
     private void initializeUberButton(double dropoffLat, double dropoffLng, String name,

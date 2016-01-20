@@ -4,9 +4,11 @@ import android.content.Context;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
+import com.jcmb.shakemeup.interfaces.OnVenuesRequestCompleteListener;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.HttpUrl;
 import com.squareup.okhttp.OkHttpClient;
@@ -137,7 +139,7 @@ public class Requests {
     }
 
     public static void getFoursquareVenuesAt(double lat, double lng, String name, String clientId,
-                                             String clientSecret, OnRequestCompleteListener listener)
+                                             String clientSecret, OnVenuesRequestCompleteListener listener)
     {
         String latLng = String.format(Locale.getDefault(), LAT_LNG_FORMAT, lat, lng);
 
@@ -154,6 +156,8 @@ public class Requests {
                 VALUE_INTENT};
 
         HttpUrl url = parseUrl(FS_HOST, VENUES_PATH, params, values);
+
+        Log.d(Requests.class.getSimpleName(), "" + url.toString());
 
         callAPI(url, listener);
     }
@@ -172,7 +176,7 @@ public class Requests {
 
         String[] values = new String[]{clientId, clientSecret, dateValue};
 
-        String[] path = VENUES_PATH;
+        String[] path = new String[]{"v2", "venues", id};
 
         path[path.length - 1] = id;
 
@@ -213,6 +217,31 @@ public class Requests {
 
 
     private static void callAPI(HttpUrl url, final OnRequestCompleteListener listener)
+    {
+        Request request = new Request.Builder().url(url).build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+                listener.onFail();
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                String responseString = response.body().string();
+
+                try {
+                    JSONObject jsonResponse = new JSONObject(responseString);
+                    listener.onSuccess(jsonResponse);
+                } catch (JSONException e) {
+                    listener.onFail();
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    private static void callAPI(HttpUrl url, final OnVenuesRequestCompleteListener listener)
     {
         Request request = new Request.Builder().url(url).build();
 

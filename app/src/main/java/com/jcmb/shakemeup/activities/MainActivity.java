@@ -99,8 +99,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 				 * method you would use to setup whatever you want done once the
 				 * device has been shook.
 				 */
-                Vibrator vibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
-                vibrator.vibrate(200);
                 getPlaces();
             }
         });
@@ -184,12 +182,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.VIBRATE) != PackageManager.PERMISSION_GRANTED)
+            if (ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    || ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    || ActivityCompat.checkSelfPermission(this,Manifest.permission.VIBRATE) != PackageManager.PERMISSION_GRANTED)
             {
 
                 if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -248,7 +243,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Requests.searchPlacesNearby(currentLocation, this, new OnRequestCompleteListener() {
                 @Override
                 public void onSuccess(JSONObject jsonResponse) {
-
+                    Vibrator vibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
+                    vibrator.vibrate(200);
                     String id = Parser.getPlaceId(jsonResponse);
 
                     if(id != null)

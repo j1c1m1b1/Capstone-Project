@@ -105,4 +105,6 @@
     <string name="distance">Estimated travel time</string>
     <string name="profile_image">Profile image</string>
     <string name="business_info">More business info</string>
+    <string name="venue_picture">Venue picture</string>
+    <string name="powered_by_foursquare">Powered by foursquare</string>
 </resources>

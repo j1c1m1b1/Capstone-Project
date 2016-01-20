@@ -1,5 +1,7 @@
 package com.jcmb.shakemeup.places;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,6 +35,18 @@ public class Parser {
     private static final String ITEMS = "items";
     private static final String PREFIX = "prefix";
     private static final String SUFFIX = "suffix";
+    private static final String HAS_MENU = "hasMenu";
+    private static final String MENU = "menu";
+    private static final String MENU_URL = "mobileUrl";
+    private static final String TIPS = "tips";
+    private static final String ALL_TIPS = "All tips";
+    private static final String USER = "user";
+    private static final String FIRST_NAME = "firstName";
+    private static final String LAST_NAME = "lastName";
+    private static final String PHOTO = "photo";
+    private static final String USER_PHOTO_DIMEN = "300x300";
+    private static final String ORIGINAL = "original";
+
 
     public static String getAddress(JSONObject jsonResponse)
     {
@@ -134,28 +148,32 @@ public class Parser {
     public static String getVenueId(JSONObject jsonObject, String name)
     {
         String id = null;
+
         try {
             JSONObject jsonResponse = jsonObject.getJSONObject(RESPONSE);
 
-            JSONArray venues = jsonResponse.getJSONArray(VENUES);
-
-            if(venues.length() > 0)
+            if(!jsonResponse.isNull(VENUES))
             {
-                boolean found = false;
+                JSONArray venues = jsonResponse.getJSONArray(VENUES);
 
-                JSONObject venue;
-
-                for(int i = 0; i < venues.length() && !found; i++)
+                if(venues.length() > 0)
                 {
-                    venue = venues.getJSONObject(i);
+                    boolean found = false;
 
-                    if(venue.getString(NAME).equals(name))
+                    JSONObject venue;
+
+                    for(int i = 0; i < venues.length() && !found; i++)
                     {
-                        id = venue.getString(ID);
-                        found = true;
-                    }
-                }
+                        venue = venues.getJSONObject(i);
 
+                        if(venue.getString(NAME).equals(name))
+                        {
+                            id = venue.getString(ID);
+                            found = true;
+                        }
+                    }
+
+                }
             }
 
         } catch (JSONException e) {
@@ -174,67 +192,138 @@ public class Parser {
 
             String foursquareUrl = jsonVenue.getString(VENUE_URL);
 
-            ArrayList<String> photos = new ArrayList<>();
+            String menuUrl = null;
 
-            if(!jsonVenue.isNull(PHOTOS))
+            boolean hasMenu = jsonVenue.getBoolean(HAS_MENU);
+
+            if(hasMenu)
             {
-                JSONObject photosObject = jsonVenue.getJSONObject(PHOTOS);
 
-                JSONArray groups = photosObject.getJSONArray(GROUPS);
-
-                if(groups.length() > 0)
-                {
-                    JSONObject group = null;
-                    boolean found = false;
-                    for(int i = 0; i < groups.length() && !found; i ++)
-                    {
-                        group = groups.getJSONObject(i);
-
-                        if(group.getString(TYPE).equals(VENUE))
-                        {
-                            found = true;
-                        }
-                    }
-
-                    if(group != null)
-                    {
-                        JSONArray items = group.getJSONArray(ITEMS);
-
-                        if(items.length() > 0)
-                        {
-                            JSONObject item;
-                            String photoUrl;
-
-                            String suffix;
-                            for (int i = 0; i < items.length(); i ++)
-                            {
-                                item = items.getJSONObject(0);
-
-                                photoUrl = item.getString(PREFIX);
-
-                                suffix = item.getString(SUFFIX);
-
-                                suffix = suffix.substring(1);
-
-                                photoUrl += suffix;
-
-                                photos.add(photoUrl);
-                            }
-                        }
-
-                    }
-                }
+                JSONObject menu = jsonVenue.getJSONObject(MENU);
+                menuUrl = menu.getString(MENU_URL);
             }
 
+            ArrayList<String> photos = getVenuePhotos(jsonVenue);
 
+            ArrayList<Tip> tips = getVenueTips(jsonVenue);
 
-
+            venue = new Venue(foursquareUrl, menuUrl, photos, tips);
 
         } catch (JSONException e) {
+            Log.e(Parser.class.getSimpleName(), "Error parsing JSON: " + e.getMessage());
             e.printStackTrace();
         }
 
         return venue;
+    }
+
+    private static ArrayList<Tip> getVenueTips(JSONObject jsonVenue) throws JSONException {
+        ArrayList<Tip> tips = new ArrayList<>();
+
+        if(!jsonVenue.isNull(TIPS))
+        {
+            JSONObject tipsObject = jsonVenue.getJSONObject(TIPS);
+
+            JSONArray groups = tipsObject.getJSONArray(GROUPS);
+
+            if(groups.length() > 0)
+            {
+                boolean found = false;
+                JSONObject group = null;
+                for(int i = 0; i < groups.length() && !found; i++)
+                {
+                    group = groups.getJSONObject(i);
+                    if(group.getString(NAME).equals(ALL_TIPS))
+                    {
+                        found = true;
+                    }
+                }
+
+                if(group != null)
+                {
+                    JSONArray items = group.getJSONArray(ITEMS);
+                    String text, userName, userPhotoUrl;
+                    JSONObject item, user, photo;
+                    Tip tip;
+                    for(int i = 0; i < 2; i ++)
+                    {
+                        item = items.getJSONObject(i);
+                        if(item.getString(TYPE).equals(USER))
+                        {
+                            text = item.getString(TEXT);
+                            user = item.getJSONObject(USER);
+                            try
+                            {
+                                userName = user.getString(FIRST_NAME) + " " + user.getString(LAST_NAME);
+                            }
+                            catch (JSONException e)
+                            {
+                                userName = user.getString(FIRST_NAME);
+                            }
+
+                            photo = user.getJSONObject(PHOTO);
+                            userPhotoUrl = photo.getString(PREFIX) + USER_PHOTO_DIMEN +
+                                    photo.getString(SUFFIX);
+
+                            tip = new Tip(text, userName, userPhotoUrl);
+
+                            tips.add(tip);
+                        }
+                    }
+                }
+            }
+        }
+        return tips;
+    }
+
+
+    private static ArrayList<String> getVenuePhotos(JSONObject jsonVenue) throws JSONException {
+        ArrayList<String> photos = new ArrayList<>();
+
+        if(!jsonVenue.isNull(PHOTOS))
+        {
+            JSONObject photosObject = jsonVenue.getJSONObject(PHOTOS);
+
+            JSONArray groups = photosObject.getJSONArray(GROUPS);
+
+            if(groups.length() > 0)
+            {
+                JSONObject group = null;
+                boolean found = false;
+                for(int i = 0; i < groups.length() && !found; i ++)
+                {
+                    group = groups.getJSONObject(i);
+
+                    if(group.getString(TYPE).equals(VENUE))
+                    {
+                        found = true;
+                    }
+                }
+
+                if(group != null)
+                {
+                    JSONArray items = group.getJSONArray(ITEMS);
+
+                    if(items.length() > 0)
+                    {
+                        JSONObject item;
+                        String photoUrl;
+
+                        for (int i = 0; i < items.length(); i ++)
+                        {
+                            item = items.getJSONObject(i);
+
+                            photoUrl = item.getString(PREFIX) + ORIGINAL + item.getString(SUFFIX);
+
+                            photos.add(photoUrl);
+                        }
+                    }
+
+                }
+            }
+        }
+
+        return photos;
     }
 
 }
