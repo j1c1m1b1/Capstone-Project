@@ -1,21 +1,15 @@
 package com.jcmb.shakemeup.activities;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -30,12 +24,7 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.PlacePhotoResult;
@@ -55,7 +44,6 @@ import com.jcmb.shakemeup.places.Parser;
 import com.jcmb.shakemeup.places.PlacePhotoLoader;
 import com.jcmb.shakemeup.places.Tip;
 import com.jcmb.shakemeup.places.Venue;
-import com.jcmb.shakemeup.util.ShakeDetector;
 import com.uber.sdk.android.rides.RequestButton;
 import com.uber.sdk.android.rides.RideParameters;
 
@@ -65,16 +53,14 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class PlaceActivity extends AppCompatActivity
-        implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, LoaderManager.LoaderCallbacks<Object>,
-        OnMapReadyCallback, LocationListener {
+public class PlaceActivity extends BaseActivity
+        implements LoaderManager.LoaderCallbacks<Object>, OnMapReadyCallback {
 
     public static final String PLACE_ID = "place_id";
     public static final String PICKUP_LATITUDE = "pickup_lat";
     public static final String PICKUP_LONGITUDE = "pickup_lng";
     public static final String PICKUP_ADDRESS = "pickup_address";
-    private static final String TAG = PlaceActivity.class.getSimpleName();
+
     private static final int PLACE_PHOTO_LOADER_ID = 100;
     //UI
 
@@ -102,8 +88,6 @@ public class PlaceActivity extends AppCompatActivity
 
     //Fields
 
-    private GoogleApiClient apiClient;
-
     private String placeId;
 
     private double pickupLat;
@@ -112,36 +96,17 @@ public class PlaceActivity extends AppCompatActivity
 
     private String pickupAddress;
 
-    private Location currentLocation;
-
-    private String currentAddress;
-
-    private LocationRequest locationRequest;
-
-    private ShakeDetector shakeDetector;
-    private SensorManager sensorManager;
-    private Sensor accelerometer;
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        super.create(this);
+
         initUI();
-
-        startApiClient();
-
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-
-        mapFragment.getMapAsync(this);
 
         Intent intent = getIntent();
 
         getIntentInfo(intent);
-
-        createLocationRequest();
-
-        startUpAccelerometer();
     }
 
     private void initUI()
@@ -181,20 +146,11 @@ public class PlaceActivity extends AppCompatActivity
 
         rvPhotos.setLayoutManager(manager);
 
-    }
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
 
-    private void startApiClient()
-    {
-        if (apiClient == null) {
-            apiClient = new GoogleApiClient.Builder(this).
-                    addConnectionCallbacks(this).
-                    addOnConnectionFailedListener(this).
-                    addApi(Places.GEO_DATA_API).
-                    addApi(LocationServices.API)
-                    .build();
-        }
-    }
+        mapFragment.getMapAsync(this);
 
+    }
 
     private void getIntentInfo(Intent intent)
     {
@@ -205,63 +161,6 @@ public class PlaceActivity extends AppCompatActivity
             pickupLng = intent.getDoubleExtra(PICKUP_LONGITUDE, -1.0d);
             pickupAddress = intent.getStringExtra(PICKUP_ADDRESS);
         }
-    }
-
-    private void startUpAccelerometer()
-    {
-        sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-        accelerometer = sensorManager
-                .getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        shakeDetector = new ShakeDetector();
-        shakeDetector.setOnShakeListener(new ShakeDetector.OnShakeListener() {
-
-            @Override
-            public void onShake(int count) {
-				/*
-				 * The following method, "handleShakeEvent(count):" is a stub //
-				 * method you would use to setup whatever you want done once the
-				 * device has been shook.
-				 */
-                Vibrator vibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
-                vibrator.vibrate(200);
-                getPlaces();
-            }
-        });
-    }
-
-    protected void createLocationRequest() {
-        locationRequest = new LocationRequest();
-        locationRequest.setInterval(10000);
-        locationRequest.setFastestInterval(5000);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        apiClient.connect();
-    }
-
-    @Override
-    protected void onStop() {
-        apiClient.disconnect();
-        super.onStop();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        sensorManager.registerListener(shakeDetector, accelerometer, SensorManager.SENSOR_DELAY_UI);
-    }
-
-    @Override
-    protected void onPause() {
-        sensorManager.unregisterListener(shakeDetector);
-        if(apiClient.isConnected())
-        {
-            LocationServices.FusedLocationApi.removeLocationUpdates(apiClient, this);
-        }
-        super.onPause();
     }
 
     @Override
@@ -287,44 +186,8 @@ public class PlaceActivity extends AppCompatActivity
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        super.onConnected(bundle);
         getPlace();
-        requestLocationUpdates();
-    }
-
-    private void requestLocationUpdates()
-    {
-        //noinspection ResourceType
-        LocationServices.FusedLocationApi.requestLocationUpdates(apiClient, locationRequest, this);
-    }
-
-    private void getPlaces()
-    {
-        if(currentLocation != null)
-        {
-            Requests.searchPlacesNearby(currentLocation, this, new OnRequestCompleteListener() {
-                @Override
-                public void onSuccess(JSONObject jsonResponse) {
-
-                    String id = Parser.getPlaceId(jsonResponse);
-
-                    if(id != null)
-                    {
-                        Intent intent = new Intent(PlaceActivity.this, PlaceActivity.class);
-                        intent.putExtra(PlaceActivity.PICKUP_LATITUDE, currentLocation.getLatitude());
-                        intent.putExtra(PlaceActivity.PICKUP_LONGITUDE, currentLocation.getLongitude());
-                        intent.putExtra(PlaceActivity.PICKUP_ADDRESS, currentAddress);
-                        intent.putExtra(PlaceActivity.PLACE_ID, id);
-                        startActivity(intent);
-                        finish();
-                    }
-                }
-
-                @Override
-                public void onFail() {
-                    Log.e(TAG, "Error");
-                }
-            });
-        }
     }
 
     private void getPlace()
@@ -539,17 +402,6 @@ public class PlaceActivity extends AppCompatActivity
     }
 
     @Override
-    public void onConnectionSuspended(int i) {
-        apiClient.connect();
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.e("Api Client", "" + connectionResult.getErrorMessage());
-        Log.e("Api Client", "" + connectionResult.getErrorCode());
-    }
-
-    @Override
     public Loader<Object> onCreateLoader(int id, Bundle args) {
 
         PlacePhotoLoader photoLoader = new PlacePhotoLoader(this);
@@ -608,35 +460,4 @@ public class PlaceActivity extends AppCompatActivity
         this.googleMap = googleMap;
     }
 
-    @Override
-    public void onLocationChanged(Location location) {
-//        currentLocation = location;
-
-        currentLocation = new Location("");
-
-        currentLocation.setLatitude(40.7058316d);
-
-        currentLocation.setLongitude(-74.2582024d);
-        getCurrentAddress();
-        LocationServices.FusedLocationApi.removeLocationUpdates(apiClient, this);
-
-    }
-
-    private void getCurrentAddress() {
-        OnRequestCompleteListener onRequestCompleteListener =
-                new OnRequestCompleteListener() {
-                    @Override
-                    public void onSuccess(JSONObject jsonResponse) {
-                        currentAddress = Parser.getAddress(jsonResponse);
-                    }
-
-                    @Override
-                    public void onFail() {
-                        Log.e(TAG, "Error getting current location address");
-                    }
-                };
-
-        Requests.getAddressByLatLong(currentLocation.getLatitude(),
-                currentLocation.getLongitude(), onRequestCompleteListener);
-    }
 }

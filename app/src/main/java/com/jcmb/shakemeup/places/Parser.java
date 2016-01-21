@@ -35,7 +35,6 @@ public class Parser {
     private static final String ITEMS = "items";
     private static final String PREFIX = "prefix";
     private static final String SUFFIX = "suffix";
-    private static final String HAS_MENU = "hasMenu";
     private static final String MENU = "menu";
     private static final String MENU_URL = "mobileUrl";
     private static final String TIPS = "tips";
@@ -194,11 +193,8 @@ public class Parser {
 
             String menuUrl = null;
 
-            boolean hasMenu = jsonVenue.getBoolean(HAS_MENU);
-
-            if(hasMenu)
+            if(!jsonVenue.isNull(MENU))
             {
-
                 JSONObject menu = jsonVenue.getJSONObject(MENU);
                 menuUrl = menu.getString(MENU_URL);
             }
@@ -245,7 +241,7 @@ public class Parser {
                     String text, userName, userPhotoUrl;
                     JSONObject item, user, photo;
                     Tip tip;
-                    for(int i = 0; i < 2; i ++)
+                    for(int i = 0; i < items.length() && i < 2; i ++)
                     {
                         item = items.getJSONObject(i);
                         if(item.getString(TYPE).equals(USER))
