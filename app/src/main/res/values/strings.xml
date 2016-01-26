@@ -94,12 +94,8 @@
     <string name="location_perms_message">We need the location permission to know the places near you</string>
     <string name="request_perms">Request permissions</string>
 
-    <string name="places_server_api_key" translatable="false">AIzaSyCuexRsZ-WRaWiQyxygNeySjaR_gX-Z8T4</string>
-    <string name="uber_client_id" translatable="false">2Js3Bb3d5f5MMSz0–8iRCP7pRyBiRduC</string>
-    <string name="foursquare_client_id">JDMFQCP200BPJXX30YF2AIN4WJKWNQPLDTRY4CN01SZPXUAF</string>
-    <string name="foursquare_client_secret">KGX30YDQZHBG1XJ5011UPJ4Q5FHVIXDLSQMYJJHYYDENNVAZ</string>
 
-
+    <!--Places-->
     <string name="price_range">Price range</string>
     <string name="price_range_format">&#60;font color=#75d972&#62;%1$s&#60;/font&#62;&#60;font color=#C1C1C1 &#62;%2$s&#60;/font&#62;</string>
     <string name="distance">Estimated travel time</string>
@@ -107,4 +103,34 @@
     <string name="business_info">More business info</string>
     <string name="venue_picture">Venue picture</string>
     <string name="powered_by_foursquare">Powered by foursquare</string>
+
+    <!--OnBoarding-->
+    <!--Activity-->
+    <string name="skip">Skip</string>
+    <string name="finish">Finish</string>
+    <string name="next">Next</string>
+    <string name="indicator_1">Page 1</string>
+    <string name="indicator_2">Page 2</string>
+    <string name="indicator_3">Page 3</string>
+
+    <!--Fragment 1-->
+    <string name="food">Food</string>
+    <string name="pg_1_title">Decide what to eat</string>
+    <string name="pg_1_subtitle">Lots of amazing restaurants for you to choose from, read reviews</string>
+
+    <!--Fragment 2-->
+    <string name="location">Location indicator</string>
+    <string name="pg_2_title">Near you</string>
+    <string name="pg_2_subtitle">Every option is at most 5km (3 mi) from your current location</string>
+
+    <!--Fragment 3-->
+    <string name="uber_badge">Uber badge</string>
+    <string name="pg_3_title">Request a ride to the venue</string>
+    <string name="pg_3_subtitle">Near you</string>
+
+    <!--Keys-->
+    <string name="places_server_api_key" translatable="false">AIzaSyCuexRsZ-WRaWiQyxygNeySjaR_gX-Z8T4</string>
+    <string name="uber_client_id" translatable="false">2Js3Bb3d5f5MMSz0–8iRCP7pRyBiRduC</string>
+    <string name="foursquare_client_id">JDMFQCP200BPJXX30YF2AIN4WJKWNQPLDTRY4CN01SZPXUAF</string>
+    <string name="foursquare_client_secret">KGX30YDQZHBG1XJ5011UPJ4Q5FHVIXDLSQMYJJHYYDENNVAZ</string>
 </resources>

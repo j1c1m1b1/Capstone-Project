@@ -291,13 +291,15 @@ public class PlaceActivity extends BaseActivity
                 {
                     getFoursquareVenueWithId(id, clientId, clientSecret);
                 }
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        pbLoading.setVisibility(View.GONE);
-                    }
-                });
+                else
+                {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            pbLoading.setVisibility(View.GONE);
+                        }
+                    });
+                }
             }
 
             @Override
@@ -353,7 +355,7 @@ public class PlaceActivity extends BaseActivity
 
         VenuePhotosAdapter venuePhotosAdapter = new VenuePhotosAdapter(venue.getPhotos());
         rvPhotos.setAdapter(venuePhotosAdapter);
-
+        pbLoading.setVisibility(View.GONE);
         layoutVenue.setVisibility(View.VISIBLE);
 
     }
