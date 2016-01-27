@@ -3,18 +3,19 @@
     android:id="@+id/layoutBackground"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary"
-    android:padding="@dimen/inner_padding_double">
+    android:paddingBottom="@dimen/inner_padding_double"
+    android:paddingTop="@dimen/inner_padding_double">
 
     <FrameLayout
-        android:layout_width="240dp"
-        android:layout_height="240dp"
+        android:id="@+id/image"
+        android:layout_width="@dimen/image_preferred_size"
+        android:layout_height="@dimen/image_preferred_size"
         android:layout_gravity="center_horizontal"
         android:background="@drawable/uber_circle">
 
         <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
+            android:layout_width="@dimen/image_preferred_size_half"
+            android:layout_height="@dimen/image_preferred_size_half"
             android:layout_gravity="center"
             android:background="@drawable/uber_circle"
             android:contentDescription="@string/pg_3_subtitle"
@@ -26,21 +27,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:layout_marginBottom="?attr/actionBarSize"
+        android:layout_marginEnd="@dimen/inner_padding_double"
+        android:layout_marginLeft="@dimen/inner_padding_double"
+        android:layout_marginRight="@dimen/inner_padding_double"
+        android:layout_marginStart="@dimen/inner_padding_double"
         android:orientation="vertical">
 
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/pg_1_title"
+            android:text="@string/pg_3_title"
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
             android:textColor="@color/white"/>
 
         <TextView
+            android:id="@+id/tvDesc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/view_margin_default"
-            android:text="@string/pg_1_subtitle"
+            android:text="@string/pg_3_subtitle"
             android:textColor="@color/white"/>
 
     </LinearLayout>

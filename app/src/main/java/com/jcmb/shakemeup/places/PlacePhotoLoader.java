@@ -1,7 +1,6 @@
 package com.jcmb.shakemeup.places;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.support.v4.content.AsyncTaskLoader;
 
 import com.google.android.gms.common.api.GoogleApiClient;

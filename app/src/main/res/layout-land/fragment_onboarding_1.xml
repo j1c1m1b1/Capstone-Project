@@ -8,8 +8,8 @@
 
     <ImageView
         android:id="@+id/image"
-        android:layout_width="@dimen/image_preferred_size"
-        android:layout_height="@dimen/image_preferred_size"
+        android:layout_width="@dimen/image_preferred_size_half"
+        android:layout_height="@dimen/image_preferred_size_half"
         android:layout_gravity="center_horizontal"
         android:contentDescription="@string/food"
         android:src="@drawable/food"

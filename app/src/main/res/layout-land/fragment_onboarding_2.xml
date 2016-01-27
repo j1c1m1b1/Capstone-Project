@@ -8,11 +8,11 @@
 
     <ImageView
         android:id="@+id/image"
-        android:layout_width="@dimen/image_preferred_size"
-        android:layout_height="@dimen/image_preferred_size"
+        android:layout_width="@dimen/image_preferred_size_half"
+        android:layout_height="@dimen/image_preferred_size_half"
         android:layout_gravity="center_horizontal"
-        android:contentDescription="@string/food"
-        android:src="@drawable/food"
+        android:contentDescription="@string/location"
+        android:src="@drawable/location"
         />
 
     <LinearLayout
@@ -30,7 +30,7 @@
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/pg_1_title"
+            android:text="@string/pg_2_title"
             android:textAppearance="@style/TextAppearance.AppCompat.Headline"
             android:textColor="@color/white"/>
 
@@ -39,9 +39,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/view_margin_default"
-            android:text="@string/pg_1_subtitle"
+            android:text="@string/pg_2_subtitle"
             android:textColor="@color/white"/>
-
     </LinearLayout>
 
 

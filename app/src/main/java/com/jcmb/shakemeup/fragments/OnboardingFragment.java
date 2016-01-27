@@ -1,7 +1,6 @@
 package com.jcmb.shakemeup.fragments;
 
 import android.os.Bundle;
-import android.support.annotation.ColorInt;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -14,21 +13,17 @@ import com.jcmb.shakemeup.R;
 /**
  * @author Julio Mendoza on 1/26/16.
  */
-public class OnboardingFragment extends Fragment {
+public class OnBoardingFragment extends Fragment{
 
-    private static final String BG_COLOR = "bgColor";
     private static final String PAGE = "page";
 
-    @ColorInt
-    private int bgColor;
     private int page;
 
-    public static OnboardingFragment newInstance(int bgColor, int page)
+    public static OnBoardingFragment newInstance(int page)
     {
-        OnboardingFragment fragment = new OnboardingFragment();
+        OnBoardingFragment fragment = new OnBoardingFragment();
 
         Bundle bundle = new Bundle();
-        bundle.putInt(BG_COLOR, bgColor);
         bundle.putInt(PAGE, page);
 
         fragment.setArguments(bundle);
@@ -39,16 +34,10 @@ public class OnboardingFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (!getArguments().containsKey(BG_COLOR))
-        {
-            throw new RuntimeException("Fragment must contain a \"" + BG_COLOR + "\" argument!");
-        }
-
         if (!getArguments().containsKey(PAGE))
         {
             throw new RuntimeException("Fragment must contain a \"" + PAGE + "\" argument!");
         }
-        bgColor = getArguments().getInt(BG_COLOR);
         page = getArguments().getInt(PAGE);
     }
 
@@ -58,25 +47,24 @@ public class OnboardingFragment extends Fragment {
                              @Nullable Bundle savedInstanceState)
     {
         @LayoutRes
-        int layoutResId = 0;
+        int layoutResId;
 
         switch (page)
         {
             case 1:
+                layoutResId = R.layout.fragment_onboarding_2;
                 break;
             case 2:
+                layoutResId = R.layout.fragment_onboarding_3;
                 break;
             default:
+                layoutResId = R.layout.fragment_onboarding_1;
                 break;
         }
-        return inflater.inflate(layoutResId, container, false);
+        
+        View view = inflater.inflate(layoutResId, container, false);
+        view.setTag(page);
+        return view;
     }
 
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        View layoutBackground = view.findViewById(R.id.layoutBackground);
-
-        layoutBackground.setBackgroundColor(bgColor);
-    }
 }

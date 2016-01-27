@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Shake Me Up</string>
+    <string name="app_icon">Application Icon</string>
+    <string name="app_name_styled">SHAKE <b>ME</b> UP</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 
@@ -105,6 +107,12 @@
     <string name="powered_by_foursquare">Powered by foursquare</string>
 
     <!--OnBoarding-->
+    <string-array name="onBoarding_colors">
+        <item>#002441</item>
+        <item>#40C4FF</item>
+        <item>#212121</item>
+    </string-array>
+
     <!--Activity-->
     <string name="skip">Skip</string>
     <string name="finish">Finish</string>
@@ -125,12 +133,14 @@
 
     <!--Fragment 3-->
     <string name="uber_badge">Uber badge</string>
-    <string name="pg_3_title">Request a ride to the venue</string>
-    <string name="pg_3_subtitle">Near you</string>
+    <string name="pg_3_title">Get to the venue</string>
+    <string name="pg_3_subtitle">Request an Uber service to the destination automatically, without editing source or destination</string>
 
     <!--Keys-->
     <string name="places_server_api_key" translatable="false">AIzaSyCuexRsZ-WRaWiQyxygNeySjaR_gX-Z8T4</string>
     <string name="uber_client_id" translatable="false">2Js3Bb3d5f5MMSz0–8iRCP7pRyBiRduC</string>
     <string name="foursquare_client_id">JDMFQCP200BPJXX30YF2AIN4WJKWNQPLDTRY4CN01SZPXUAF</string>
     <string name="foursquare_client_secret">KGX30YDQZHBG1XJ5011UPJ4Q5FHVIXDLSQMYJJHYYDENNVAZ</string>
+
+
 </resources>

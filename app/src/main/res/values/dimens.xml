@@ -22,4 +22,7 @@
     <dimen name="byline_margin_start">24dp</dimen>
     <dimen name="byline_margin_end">16dp</dimen>
     <dimen name="photo_carousel_height">200dp</dimen>
+    <dimen name="image_preferred_size">240dp</dimen>
+    <dimen name="image_preferred_size_half">120dp</dimen>
+    <dimen name="image_preferred_size_quarter">60dp</dimen>
 </resources>
