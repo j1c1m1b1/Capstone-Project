@@ -65,7 +65,7 @@ public class OnBoardingActivity extends AppCompatActivity{
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+                SharedPreferences prefs = getSharedPreferences(SplashActivity.PREFS, MODE_PRIVATE);
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.putBoolean(SplashActivity.FIRST_TIME, false);
                 editor.apply();

@@ -20,9 +20,8 @@ public class SplashActivity extends AppCompatActivity {
      * Specifies if it is the first time opening the app.
      */
     public static final String FIRST_TIME = "first";
-
+    public static final String PREFS = "prefs";
     private static final long TIME = 3000;
-
     private static boolean active;
 
     @Override
@@ -30,7 +29,7 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         active = true;
-        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
 
         final boolean first = prefs.getBoolean(FIRST_TIME, true);
 
