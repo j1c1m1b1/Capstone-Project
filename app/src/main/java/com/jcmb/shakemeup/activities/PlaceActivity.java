@@ -146,7 +146,8 @@ public class PlaceActivity extends BaseActivity
 
         rvPhotos.setLayoutManager(manager);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
 
         mapFragment.getMapAsync(this);
 

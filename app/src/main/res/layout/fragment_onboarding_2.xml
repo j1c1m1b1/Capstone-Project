@@ -6,14 +6,23 @@
     android:paddingBottom="@dimen/inner_padding_double"
     android:paddingTop="@dimen/inner_padding_double">
 
-    <ImageView
+    <FrameLayout
         android:id="@+id/image"
         android:layout_width="@dimen/image_preferred_size"
         android:layout_height="@dimen/image_preferred_size"
         android:layout_gravity="center_horizontal"
-        android:contentDescription="@string/location"
-        android:src="@drawable/location"
-        />
+        android:background="@drawable/location_circle">
+
+        <ImageView
+            android:id="@+id/ivOnBoarding"
+            android:layout_width="@dimen/image_preferred_size_half"
+            android:layout_height="@dimen/image_preferred_size_half"
+            android:layout_gravity="center"
+            android:contentDescription="@string/location"
+            android:scaleType="centerInside"
+            android:src="@drawable/map_marker"
+            />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -1,8 +1,15 @@
 package com.jcmb.shakemeup.util;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
+import android.content.Context;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.GlideDrawableImageViewTarget;
 import com.jcmb.shakemeup.R;
 
 /**
@@ -10,17 +17,72 @@ import com.jcmb.shakemeup.R;
  */
 public class OnBoardingPageTransformer implements ViewPager.PageTransformer {
 
+    private static final String TAG = OnBoardingPageTransformer.class.getSimpleName();
+    private int pagePosition = -1;
+
+    private Context context;
+    private View image;
+    private View tvTitle;
+    private View tvDesc;
+    private ImageView ivOnBoarding;
+    private ObjectAnimator animator;
+    private boolean stopped;
+
+    public OnBoardingPageTransformer(Context context) {
+        this.context = context;
+    }
+
     @Override
     public void transformPage(View page, float position) {
-        View image = page.findViewById(R.id.image);
-        View tvTitle = page.findViewById(R.id.tvTitle);
-        View tvDesc = page.findViewById(R.id.tvDesc);
+
+        int newPagePosition = (int) page.getTag();
+
+
+        if(pagePosition != newPagePosition)
+        {
+            image = page.findViewById(R.id.image);
+            tvTitle = page.findViewById(R.id.tvTitle);
+            tvDesc = page.findViewById(R.id.tvDesc);
+            ivOnBoarding = (ImageView)page.findViewById(R.id.ivOnBoarding);
+            pagePosition = newPagePosition;
+        }
 
         int pageWidth = page.getWidth();
         float pageWidthTimesPosition = pageWidth * position;
         float absPosition = Math.abs(position);
 
-        if(position > -1.0f || position < 1.0f && position != 0.0f) {
+        if (position <= -1.0f || position >= 1.0f) {
+
+            // The page is not visible. This is a good place to stop
+            // any potential work / animations you may have running.
+            switch (pagePosition)
+            {
+                case 1:
+                    stopAnimation();
+                    break;
+                case 2:
+                    stopGif();
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if(position == 0.0f)
+        {
+            switch (pagePosition)
+            {
+                case 1:
+                    animateImage();
+                    break;
+                case 2:
+                    loadGif();
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if(position > -1.0f || position < 1.0f) {
+
 
             // The page is currently being scrolled / swiped. This is
             // a good place to show animations that react to the user's
@@ -28,6 +90,8 @@ public class OnBoardingPageTransformer implements ViewPager.PageTransformer {
 
             // Let's start by animating the title.
             // We want it to fade as it scrolls out
+            assert tvTitle != null;
+            assert tvDesc != null;
             tvTitle.setAlpha(1.0f - absPosition);
 
             // Now the description. We also want this one to
@@ -62,4 +126,55 @@ public class OnBoardingPageTransformer implements ViewPager.PageTransformer {
         }
 
     }
+
+    private void stopAnimation() {
+        if(animator != null && animator.isRunning())
+        {
+            animator.cancel();
+        }
+    }
+
+    private void stopGif()
+    {
+        if(!stopped)
+        {
+            GlideDrawableImageViewTarget target = new GlideDrawableImageViewTarget(ivOnBoarding);
+            target.onStop();
+            stopped = true;
+        }
+    }
+
+    private void loadGif()
+    {
+        try
+        {
+            stopped = false;
+            GlideDrawableImageViewTarget target = new GlideDrawableImageViewTarget(ivOnBoarding);
+            Glide.with(context)
+                    .load(R.raw.uber_gif_small)
+                    .into(target);
+        }
+        catch (Exception e)
+        {
+            Log.e(TAG, "Incorrect fragment");
+        }
+    }
+
+    private void animateImage()
+    {
+        if(animator == null)
+        {
+            animator = ObjectAnimator.ofFloat(ivOnBoarding, "translationY", 0f, -80f);
+            animator.setDuration(500);
+            animator.setRepeatCount(ValueAnimator.INFINITE);
+            animator.setRepeatMode(ValueAnimator.REVERSE);
+
+            animator.start();
+        }
+        else
+        {
+            animator.start();
+        }
+    }
+
 }

@@ -40,6 +40,9 @@ import com.jcmb.shakemeup.util.ShakeDetector;
 
 import org.json.JSONObject;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * @author Julio Mendoza on 1/21/16.
  */
@@ -60,6 +63,8 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
     private ShakeDetector shakeDetector;
     private SensorManager sensorManager;
     private Sensor accelerometer;
+    private boolean enabled;
+    private TimerTask task;
 
     protected void create(Context context)
     {
@@ -239,12 +244,10 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
 
             @Override
             public void onShake(int count) {
-				/*
-				 * The following method, "handleShakeEvent(count):" is a stub //
-				 * method you would use to setup whatever you want done once the
-				 * device has been shook.
-				 */
-                getPlaces(context);
+                if(enabled)
+                {
+                    getPlaces(context);
+                }
             }
         });
     }
@@ -256,10 +259,20 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
         {
             apiClient.connect();
         }
+
+        task = new TimerTask() {
+            @Override
+            public void run() {
+                enabled = true;
+            }
+        };
+        Timer timer = new Timer();
+        timer.schedule(task, 700);
     }
 
     @Override
     protected void onStop() {
+        task.cancel();
         if(apiClient != null)
         {
             apiClient.disconnect();

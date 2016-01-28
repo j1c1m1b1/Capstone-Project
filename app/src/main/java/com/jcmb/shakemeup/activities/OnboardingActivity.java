@@ -54,7 +54,7 @@ public class OnBoardingActivity extends AppCompatActivity{
 
         viewPager.setAdapter(new OnBoardingAdapter(getSupportFragmentManager()));
 
-        viewPager.setPageTransformer(false, new OnBoardingPageTransformer());
+        viewPager.setPageTransformer(false, new OnBoardingPageTransformer(this));
 
         ImageView indicator0 = (ImageView) findViewById(R.id.indicator0);
         ImageView indicator1 = (ImageView) findViewById(R.id.indicator1);
@@ -96,6 +96,8 @@ public class OnBoardingActivity extends AppCompatActivity{
 
         viewPager.setCurrentItem(page);
         updateIndicators(page);
+        btnNext.setVisibility(page == 2 ? View.GONE : View.VISIBLE);
+        btnFinish.setVisibility(page == 2 ? View.VISIBLE : View.GONE);
 
         setUpViewPager(viewPager);
     }

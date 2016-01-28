@@ -61,7 +61,7 @@ public class OnBoardingFragment extends Fragment{
                 layoutResId = R.layout.fragment_onboarding_1;
                 break;
         }
-        
+
         View view = inflater.inflate(layoutResId, container, false);
         view.setTag(page);
         return view;
