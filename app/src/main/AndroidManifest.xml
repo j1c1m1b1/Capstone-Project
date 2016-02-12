@@ -35,7 +35,8 @@
             android:theme="@style/AppTheme"/>
 
         <activity android:name=".activities.PlaceActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.Dialog"/>
     </application>
 
 </manifest>

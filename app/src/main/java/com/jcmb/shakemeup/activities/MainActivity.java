@@ -1,5 +1,6 @@
 package com.jcmb.shakemeup.activities;
 
+import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.location.Location;
@@ -7,35 +8,45 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
 import android.support.annotation.StyleRes;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
-import com.bumptech.glide.Glide;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
 import com.jcmb.shakemeup.R;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
-    TextSwitcher tsActionTitle;
+    private static final float DEFAULT_ZOOM = 14f;
+    private TextSwitcher tsActionTitle;
 
-    TextSwitcher tsActionDesc;
+    private TextSwitcher tsActionDesc;
 
-    ImageView ivAction;
+    private LinearLayout layoutContent;
 
-    ProgressBar pbLoading;
+    private FrameLayout layoutMap;
+
+    private GoogleMap googleMap;
+
+    private MapFragment mapFragment;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        super.create(this);
         initUI();
+        super.create(this);
     }
 
     @SuppressLint("PrivateResource")
@@ -48,8 +59,18 @@ public class MainActivity extends BaseActivity {
         tsActionDesc = (TextSwitcher) findViewById(R.id.tsActionDesc);
         initTextSwitcher(tsActionDesc,
                 android.support.design.R.style.TextAppearance_AppCompat_Subhead, R.string.getting_location_desc);
-        ivAction = (ImageView)findViewById(R.id.ivAction);
-        pbLoading = (ProgressBar)findViewById(R.id.pbLoading);
+
+        layoutContent = (LinearLayout)findViewById(R.id.layoutContent);
+        layoutMap = (FrameLayout)findViewById(R.id.layoutMap);
+
+        mapFragment = (MapFragment) getFragmentManager()
+                .findFragmentById(R.id.map);
+    }
+
+    @Override
+    protected void onPermissionsAccepted() {
+        super.onPermissionsAccepted();
+        mapFragment.getMapAsync(this);
     }
 
     @Override
@@ -83,24 +104,93 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        shouldFinish = false;
+        shouldRemoveUpdates = false;
+    }
+
+    @Override
     public void onLocationChanged(Location location) {
         super.onLocationChanged(location);
+        Log.d(TAG, "Location changed!");
         updateUiAfterLocation();
 
     }
 
     private void updateUiAfterLocation()
     {
-        pbLoading.animate()
-                .alpha(0f)
-                .setDuration(getResources().getInteger(R.integer.default_anim_duration))
-                .start();
-
-        Glide.with(this).load(R.drawable.shake).crossFade().into(ivAction);
+        if(currentLocation != null && googleMap != null)
+        {
+            LatLng latLng = new LatLng(currentLocation.getLatitude(),
+                    currentLocation.getLongitude());
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+            animateMap();
+        }
 
         tsActionTitle.setText(getString(R.string.shake_me));
         tsActionDesc.setText(getString(R.string.shake_me_desc));
+
     }
+
+    private void animateMap()
+    {
+        layoutContent.animate()
+                .alpha(0f)
+                .setDuration(getResources().getInteger(R.integer.default_anim_duration))
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+                        layoutContent.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animator) {
+
+                    }
+                })
+                .start();
+
+
+        layoutMap.animate()
+                .alpha(1f)
+                .setDuration(getResources().getInteger(R.integer.default_anim_duration))
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animator) {
+                        layoutMap.setVisibility(View.VISIBLE);
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animator) {
+
+                    }
+                })
+                .start();
+    }
+
+
+
 
     private void initTextSwitcher(TextSwitcher textSwitcher, @StyleRes final int styleRes,
                                   @StringRes final int stringRes)
@@ -137,5 +227,14 @@ public class MainActivity extends BaseActivity {
             }
         });
 
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+
+        //noinspection MissingPermission
+        googleMap.setMyLocationEnabled(true);
+
+        this.googleMap = googleMap;
     }
 }

@@ -9,11 +9,6 @@ import android.util.Log;
 import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
 import com.jcmb.shakemeup.interfaces.OnVenuesRequestCompleteListener;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.HttpUrl;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,6 +18,13 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * @author Julio Mendoza on 12/29/15.
@@ -222,12 +224,12 @@ public class Requests {
 
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Request request, IOException e) {
+            public void onFailure(Call call, IOException e) {
                 listener.onFail();
             }
 
             @Override
-            public void onResponse(Response response) throws IOException {
+            public void onResponse(Call call, Response response) throws IOException {
                 String responseString = response.body().string();
 
                 try {
@@ -247,12 +249,12 @@ public class Requests {
 
         client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Request request, IOException e) {
+            public void onFailure(Call call, IOException e) {
                 listener.onFail();
             }
 
             @Override
-            public void onResponse(Response response) throws IOException {
+            public void onResponse(Call call, Response response) throws IOException {
                 String responseString = response.body().string();
 
                 try {

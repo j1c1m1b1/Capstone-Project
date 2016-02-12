@@ -59,7 +59,8 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
     protected Location currentLocation;
 
     protected String currentAddress;
-
+    protected boolean shouldFinish = true;
+    protected boolean shouldRemoveUpdates = true;
     private ShakeDetector shakeDetector;
     private SensorManager sensorManager;
     private Sensor accelerometer;
@@ -98,6 +99,7 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
             else
             {
                 initServices();
+                onPermissionsAccepted();
             }
         }
     }
@@ -111,6 +113,7 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 initServices();
+                onPermissionsAccepted();
             }
             else
             {
@@ -118,6 +121,8 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         }
     }
+
+    protected void onPermissionsAccepted(){}
 
     private void showExplanationDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -299,7 +304,6 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-//        requestLocationUpdates();
     }
 
     @Override
@@ -312,8 +316,10 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
         currentLocation = location;
 
         getCurrentAddress();
-
-        LocationServices.FusedLocationApi.removeLocationUpdates(apiClient, this);
+        if(shouldRemoveUpdates)
+        {
+            LocationServices.FusedLocationApi.removeLocationUpdates(apiClient, this);
+        }
     }
 
     private void getCurrentAddress() {
@@ -367,7 +373,10 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
                         intent.putExtra(PlaceActivity.PICKUP_ADDRESS, currentAddress);
                         intent.putExtra(PlaceActivity.PLACE_ID, id);
                         startActivity(intent);
-                        finish();
+                        if(shouldFinish)
+                        {
+                            finish();
+                        }
                     }
                 }
 
