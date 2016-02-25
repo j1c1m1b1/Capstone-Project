@@ -53,6 +53,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private void initUI()
     {
         setContentView(R.layout.activity_main);
+        setNavigationBarColor();
         tsActionTitle = (TextSwitcher) findViewById(R.id.tsActionTitle);
         initTextSwitcher(tsActionTitle,
                 android.support.design.R.style.TextAppearance_AppCompat_Display1, R.string.getting_location);

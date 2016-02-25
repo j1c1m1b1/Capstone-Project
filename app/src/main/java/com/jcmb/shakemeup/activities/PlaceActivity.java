@@ -113,6 +113,8 @@ public class PlaceActivity extends BaseActivity
     {
         setContentView(R.layout.activity_place);
 
+        setNavigationBarColor();
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 

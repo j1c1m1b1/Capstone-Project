@@ -16,6 +16,7 @@ import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -66,6 +67,12 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
     private Sensor accelerometer;
     private boolean enabled;
     private TimerTask task;
+
+    protected void setNavigationBarColor() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
+        }
+    }
 
     protected void create(Context context)
     {
