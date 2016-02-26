@@ -61,6 +61,7 @@
     <string name="favorites_added">Added to favorites</string>
     <string name="favorites_removed">Removed from favorites</string>
     <string name="undo">Undo</string>
+    <string name="map_intent_uri_format">geo:%1$f,%2$f?q=%3$f,%4$f</string>
 
     <!--Keys-->
     <string name="places_server_api_key" translatable="false">AIzaSyCuexRsZ-WRaWiQyxygNeySjaR_gX-Z8T4</string>

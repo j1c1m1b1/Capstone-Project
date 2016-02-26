@@ -60,6 +60,7 @@ import com.uber.sdk.android.rides.RideParameters;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -112,6 +113,10 @@ public class PlaceActivity extends BaseActivity
     private FloatingActionButton btnFavorite;
 
     private boolean isFavorite;
+
+    private ShareActionProvider shareActionProvider;
+
+    private MenuItem shareItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -248,18 +253,20 @@ public class PlaceActivity extends BaseActivity
 
                             tvPriceRange.setText(Html.fromHtml(priceRange));
 
-                            double dropoffLat = place.getLatLng().latitude;
-                            double dropoffLng = place.getLatLng().longitude;
+                            double dropOffLat = place.getLatLng().latitude;
+                            double dropOffLng = place.getLatLng().longitude;
 
-                            Log.d(TAG, "" + place.getName() + ", " + dropoffLat +
-                                    ", " + dropoffLng);
+                            Log.d(TAG, "" + place.getName() + ", " + dropOffLat +
+                                    ", " + dropOffLng);
 
-                            initializeUberButton(dropoffLat, dropoffLng,
+                            initializeShareIntent(dropOffLat, dropOffLng);
+
+                            initializeUberButton(dropOffLat, dropOffLng,
                                     place.getName().toString(), place.getAddress().toString());
 
-                            getDistanceOfPlace(dropoffLat, dropoffLng);
+                            getDistanceOfPlace(dropOffLat, dropOffLng);
 
-                            getFoursquareVenues(dropoffLat, dropoffLng, place.getName().toString());
+                            getFoursquareVenues(dropOffLat, dropOffLng, place.getName().toString());
 
                             setupMap(place.getLatLng());
 
@@ -269,6 +276,21 @@ public class PlaceActivity extends BaseActivity
                 });
 
         getSupportLoaderManager().initLoader(PLACE_PHOTO_LOADER_ID, null, this).forceLoad();
+    }
+
+    private void initializeShareIntent(double lat, double lng) {
+        String format = getString(R.string.map_intent_uri_format);
+
+        String uriString = String.format(Locale.getDefault(), format, lat, lng, lat, lng);
+
+        Intent shareIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uriString));
+
+        shareActionProvider.setShareIntent(shareIntent);
+
+//        shareItem.setVisible(true);
+
+        invalidateOptionsMenu();
+
     }
 
     private void getFavoritePlace() {
@@ -535,8 +557,8 @@ public class PlaceActivity extends BaseActivity
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_place, menu);
 
-        MenuItem shareItem = menu.findItem(R.id.action_share);
-        ShareActionProvider myShareActionProvider =
+        shareItem = menu.findItem(R.id.action_share);
+        shareActionProvider =
                 (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
         return true;
     }
