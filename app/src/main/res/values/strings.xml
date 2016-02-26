@@ -2,7 +2,6 @@
     <string name="app_name">Shake Me Up</string>
 
     <!--Splash Activity-->
-    <string name="app_icon">Application Icon</string>
     <string name="app_name_styled">SHAKE <b>ME</b> UP</string>
 
 
@@ -55,6 +54,13 @@
     <string name="uber_badge">Uber badge</string>
     <string name="pg_3_title">Get to the venue</string>
     <string name="pg_3_subtitle">Request an Uber service to the destination automatically, without editing source or destination</string>
+
+    <!--Place Activity-->
+
+    <string name="share">Share</string>
+    <string name="favorites_added">Added to favorites</string>
+    <string name="favorites_removed">Removed from favorites</string>
+    <string name="undo">Undo</string>
 
     <!--Keys-->
     <string name="places_server_api_key" translatable="false">AIzaSyCuexRsZ-WRaWiQyxygNeySjaR_gX-Z8T4</string>

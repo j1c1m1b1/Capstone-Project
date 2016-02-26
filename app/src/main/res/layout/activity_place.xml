@@ -41,22 +41,24 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
+                android:layout_marginBottom="@dimen/byline_margin_bottom"
                 android:layout_marginLeft="@dimen/byline_margin_start"
                 android:layout_marginStart="@dimen/byline_margin_start"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:padding="8dp">
+                android:padding="@dimen/button_padding"
+                app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed">
 
                 <TextView
                     android:id="@+id/tvByline"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/byline_margin_end"
-                    android:layout_marginRight="@dimen/byline_margin_end"
+                    android:layout_marginEnd="@dimen/text_margin"
+                    android:layout_marginRight="@dimen/text_margin"
                     android:layout_weight="1"
                     android:ellipsize="end"
-                    android:lines="1"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                    android:singleLine="true"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:textColor="@color/white"/>
 
                 <RatingBar
@@ -81,5 +83,14 @@
     </android.support.design.widget.AppBarLayout>
 
     <include layout="@layout/content_place" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btnFavorite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/fab_margin"
+        android:src="@drawable/ic_star_border_white_18dp"
+        app:layout_anchor="@id/app_bar"
+        app:layout_anchorGravity="bottom|end" />
 
 </android.support.design.widget.CoordinatorLayout>

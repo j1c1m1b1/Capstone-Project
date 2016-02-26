@@ -108,6 +108,9 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
                 initServices();
                 onPermissionsAccepted();
             }
+        } else {
+            initServices();
+            onPermissionsAccepted();
         }
     }
 

@@ -2,20 +2,30 @@ package com.jcmb.shakemeup.activities;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -60,6 +70,7 @@ public class PlaceActivity extends BaseActivity
     public static final String PICKUP_LATITUDE = "pickup_lat";
     public static final String PICKUP_LONGITUDE = "pickup_lng";
     public static final String PICKUP_ADDRESS = "pickup_address";
+    private static final String FAVORITE = "favorite";
 
     private static final int PLACE_PHOTO_LOADER_ID = 100;
     //UI
@@ -86,6 +97,8 @@ public class PlaceActivity extends BaseActivity
 
     private RecyclerView rvPhotos;
 
+    private CoordinatorLayout rootView;
+
     //Fields
 
     private String placeId;
@@ -95,6 +108,10 @@ public class PlaceActivity extends BaseActivity
     private double pickupLng;
 
     private String pickupAddress;
+
+    private FloatingActionButton btnFavorite;
+
+    private boolean isFavorite;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,6 +141,8 @@ public class PlaceActivity extends BaseActivity
             actionBar.setDisplayShowTitleEnabled(true);
         }
 
+        rootView = (CoordinatorLayout) findViewById(R.id.rootView);
+
         toolbarLayout = (CollapsingToolbarLayout)findViewById(R.id.toolbar_layout);
 
         ivPlace = (ImageView)findViewById(R.id.ivPlace);
@@ -141,6 +160,15 @@ public class PlaceActivity extends BaseActivity
         pbLoading = (ProgressBar)findViewById(R.id.pbLoading);
 
         layoutVenue = (LinearLayout)findViewById(R.id.layoutVenue);
+
+        btnFavorite = (FloatingActionButton) findViewById(R.id.btnFavorite);
+
+        btnFavorite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                switchFavorite(true);
+            }
+        });
 
         rvPhotos = (RecyclerView)findViewById(R.id.rvPhotos);
         RecyclerView.LayoutManager manager = new LinearLayoutManager(this,
@@ -163,6 +191,11 @@ public class PlaceActivity extends BaseActivity
             pickupLat = intent.getDoubleExtra(PICKUP_LATITUDE, -1.0d);
             pickupLng = intent.getDoubleExtra(PICKUP_LONGITUDE, -1.0d);
             pickupAddress = intent.getStringExtra(PICKUP_ADDRESS);
+            isFavorite = intent.getBooleanExtra(FAVORITE, false);
+            if (isFavorite) {
+                getFavoritePlace();
+            }
+            updateFavoriteButton();
         }
     }
 
@@ -190,7 +223,9 @@ public class PlaceActivity extends BaseActivity
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         super.onConnected(bundle);
-        getPlace();
+        if (!isFavorite) {
+            getPlace();
+        }
     }
 
     private void getPlace()
@@ -234,6 +269,39 @@ public class PlaceActivity extends BaseActivity
                 });
 
         getSupportLoaderManager().initLoader(PLACE_PHOTO_LOADER_ID, null, this).forceLoad();
+    }
+
+    private void getFavoritePlace() {
+        //Load place from database
+    }
+
+    private void switchFavorite(boolean showSnackbar) {
+        isFavorite = !isFavorite;
+        //Save or delete from favorites
+
+        updateFavoriteButton();
+
+        if (showSnackbar) {
+            int resId = isFavorite ? R.string.favorites_added : R.string.favorites_removed;
+            Snackbar snackbar = Snackbar.make(rootView, resId, Snackbar.LENGTH_LONG);
+
+            snackbar.setAction(R.string.undo, new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    switchFavorite(false);
+                }
+            });
+
+            snackbar.show();
+        }
+    }
+
+    private void updateFavoriteButton() {
+        int resId = isFavorite ? R.drawable.ic_star_white_18dp :
+                R.drawable.ic_star_border_white_18dp;
+
+        Drawable drawable = ContextCompat.getDrawable(this, resId);
+        btnFavorite.setImageDrawable(drawable);
     }
 
     private void setupMap(final LatLng latLng) {
@@ -283,33 +351,30 @@ public class PlaceActivity extends BaseActivity
         final String clientSecret = getString(R.string.foursquare_client_secret);
 
         Log.d(PlaceActivity.class.getSimpleName(), "Req Info: " + lat + ", " + lng
-         + ", " + placeName);
+                + ", " + placeName);
 
         Requests.getFoursquareVenuesAt(lat, lng, placeName, clientId, clientSecret,
                 new OnVenuesRequestCompleteListener() {
-            @Override
-            public void onSuccess(JSONObject jsonResponse) {
-                String id = Parser.getVenueId(jsonResponse, placeName);
-                if(id != null)
-                {
-                    getFoursquareVenueWithId(id, clientId, clientSecret);
-                }
-                else
-                {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            pbLoading.setVisibility(View.GONE);
+                    @Override
+                    public void onSuccess(JSONObject jsonResponse) {
+                        String id = Parser.getVenueId(jsonResponse, placeName);
+                        if (id != null) {
+                            getFoursquareVenueWithId(id, clientId, clientSecret);
+                        } else {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    pbLoading.setVisibility(View.GONE);
+                                }
+                            });
                         }
-                    });
-                }
-            }
+                    }
 
-            @Override
-            public void onFail() {
-                Log.e(TAG, "There are no foursquare venues");
-            }
-        });
+                    @Override
+                    public void onFail() {
+                        Log.e(TAG, "There are no foursquare venues");
+                    }
+                });
     }
 
     private void getFoursquareVenueWithId(final String id, String clientId, String clientSecret)
@@ -465,4 +530,14 @@ public class PlaceActivity extends BaseActivity
         this.googleMap = googleMap;
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_place, menu);
+
+        MenuItem shareItem = menu.findItem(R.id.action_share);
+        ShareActionProvider myShareActionProvider =
+                (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+        return true;
+    }
 }
