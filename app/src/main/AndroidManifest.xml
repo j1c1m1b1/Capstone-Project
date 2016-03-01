@@ -34,6 +34,13 @@
             android:name=".activities.PlaceActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.Dialog" />
+
+
+        <provider
+            android:name=".data.Provider"
+            android:authorities="@string/authority"
+            android:exported="false" />
+
     </application>
 
 </manifest>

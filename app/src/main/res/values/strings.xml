@@ -63,6 +63,9 @@
     <string name="undo">Undo</string>
     <string name="map_intent_uri_format">geo:%1$f,%2$f?q=%3$f,%4$f</string>
 
+    <!--Content Provider-->
+    <string name="authority" translatable="false">com.jcmb.shakemeup.provider</string>
+
     <!--Keys-->
     <string name="places_server_api_key" translatable="false">AIzaSyCuexRsZ-WRaWiQyxygNeySjaR_gX-Z8T4</string>
     <string name="uber_client_id" translatable="false">2Js3Bb3d5f5MMSz0–8iRCP7pRyBiRduC</string>

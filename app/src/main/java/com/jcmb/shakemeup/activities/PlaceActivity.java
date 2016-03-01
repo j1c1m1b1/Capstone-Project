@@ -297,13 +297,13 @@ public class PlaceActivity extends BaseActivity
         //Load place from database
     }
 
-    private void switchFavorite(boolean showSnackbar) {
+    private void switchFavorite(boolean showSnackBar) {
         isFavorite = !isFavorite;
         //Save or delete from favorites
 
         updateFavoriteButton();
 
-        if (showSnackbar) {
+        if (showSnackBar) {
             int resId = isFavorite ? R.string.favorites_added : R.string.favorites_removed;
             Snackbar snackbar = Snackbar.make(rootView, resId, Snackbar.LENGTH_LONG);
 
@@ -345,8 +345,8 @@ public class PlaceActivity extends BaseActivity
         }
     }
 
-    private void getDistanceOfPlace(double dropoffLat, double dropoffLng) {
-        Requests.getDistanceOfPlace(pickupLat, pickupLng, dropoffLat, dropoffLng,
+    private void getDistanceOfPlace(double dropOffLat, double dropOffLng) {
+        Requests.getDistanceOfPlace(pickupLat, pickupLng, dropOffLat, dropOffLng,
                 PlaceActivity.this, new OnRequestCompleteListener() {
                     @Override
                     public void onSuccess(JSONObject jsonResponse) {
@@ -480,12 +480,12 @@ public class PlaceActivity extends BaseActivity
         }
     }
 
-    private void initializeUberButton(double dropoffLat, double dropoffLng, String name,
+    private void initializeUberButton(double dropOffLat, double dropOffLng, String name,
                                       String address) {
 
         RideParameters rideParameters = new RideParameters.Builder()
                 .setPickupLocation((float)pickupLat, (float)pickupLng, "My Location", pickupAddress)
-                .setDropoffLocation((float)dropoffLat, (float)dropoffLng,
+                .setDropoffLocation((float) dropOffLat, (float) dropOffLng,
                         name, address)
                 .build();
 
