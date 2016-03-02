@@ -11,7 +11,7 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.LoaderManager;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v4.view.MenuItemCompat;
@@ -50,8 +50,10 @@ import com.jcmb.shakemeup.adapters.VenuePhotosAdapter;
 import com.jcmb.shakemeup.connection.Requests;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
 import com.jcmb.shakemeup.interfaces.OnVenuesRequestCompleteListener;
+import com.jcmb.shakemeup.loaders.FavoritePlacesLoader;
+import com.jcmb.shakemeup.loaders.PlacePhotoLoader;
+import com.jcmb.shakemeup.loaders.QueryLoader;
 import com.jcmb.shakemeup.places.Parser;
-import com.jcmb.shakemeup.places.PlacePhotoLoader;
 import com.jcmb.shakemeup.places.Tip;
 import com.jcmb.shakemeup.places.Venue;
 import com.uber.sdk.android.rides.RequestButton;
@@ -64,18 +66,21 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class PlaceActivity extends BaseActivity
-        implements LoaderManager.LoaderCallbacks<Object>, OnMapReadyCallback {
+public class PlaceActivity extends ShakeActivity
+        implements LoaderCallbacks<Object>, OnMapReadyCallback {
 
     public static final String PLACE_ID = "place_id";
     public static final String PICKUP_LATITUDE = "pickup_lat";
     public static final String PICKUP_LONGITUDE = "pickup_lng";
     public static final String PICKUP_ADDRESS = "pickup_address";
+    public static final String PLACE_IDS = "place_ids";
+    protected static final String TAG = PlaceActivity.class.getSimpleName();
     private static final String FAVORITE = "favorite";
-
+    private static final String TRANSACTION = "transaction";
     private static final int PLACE_PHOTO_LOADER_ID = 100;
+    private static final int QUERY_LOADER_ID = 200;
+    private static final int TRANSACTION_LOADER_ID = 300;
     //UI
-
     private CollapsingToolbarLayout toolbarLayout;
 
     private ImageView ivPlace;
@@ -116,13 +121,19 @@ public class PlaceActivity extends BaseActivity
 
     private ShareActionProvider shareActionProvider;
 
+    private ArrayList<String> placeIDs;
+
+    private com.jcmb.shakemeup.places.Place place;
+
+    private String[] imageUrls;
+
+    private Tip[] tips;
+
     private MenuItem shareItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        super.create(this);
 
         initUI();
 
@@ -171,7 +182,7 @@ public class PlaceActivity extends BaseActivity
         btnFavorite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                switchFavorite(true);
+                startTransactionLoader();
             }
         });
 
@@ -196,9 +207,12 @@ public class PlaceActivity extends BaseActivity
             pickupLat = intent.getDoubleExtra(PICKUP_LATITUDE, -1.0d);
             pickupLng = intent.getDoubleExtra(PICKUP_LONGITUDE, -1.0d);
             pickupAddress = intent.getStringExtra(PICKUP_ADDRESS);
+            placeIDs = intent.getStringArrayListExtra(PLACE_IDS);
             isFavorite = intent.getBooleanExtra(FAVORITE, false);
             if (isFavorite) {
                 getFavoritePlace();
+            } else {
+                getSupportLoaderManager().initLoader(QUERY_LOADER_ID, null, this).forceLoad();
             }
             updateFavoriteButton();
         }
@@ -213,6 +227,7 @@ public class PlaceActivity extends BaseActivity
             pickupLat = savedInstanceState.getDouble(PICKUP_LATITUDE);
             pickupLng = savedInstanceState.getDouble(PICKUP_LONGITUDE);
             pickupAddress = savedInstanceState.getString(PICKUP_ADDRESS);
+            placeIDs = savedInstanceState.getStringArrayList(PLACE_IDS);
         }
     }
 
@@ -223,12 +238,15 @@ public class PlaceActivity extends BaseActivity
         outState.putDouble(PICKUP_LATITUDE, pickupLat);
         outState.putDouble(PICKUP_LONGITUDE, pickupLng);
         outState.putString(PICKUP_ADDRESS, pickupAddress);
+        outState.putStringArrayList(PLACE_IDS, placeIDs);
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         super.onConnected(bundle);
-        if (!isFavorite) {
+        Loader<Object> loader = getSupportLoaderManager().getLoader(QUERY_LOADER_ID);
+
+        if (!isFavorite && !loader.isStarted()) {
             getPlace();
         }
     }
@@ -287,35 +305,46 @@ public class PlaceActivity extends BaseActivity
 
         shareActionProvider.setShareIntent(shareIntent);
 
-//        shareItem.setVisible(true);
+        shareItem.setVisible(true);
 
         invalidateOptionsMenu();
 
     }
 
     private void getFavoritePlace() {
-        //Load place from database
+
     }
 
-    private void switchFavorite(boolean showSnackBar) {
+    private void switchFavorite(String message) {
         isFavorite = !isFavorite;
         //Save or delete from favorites
 
         updateFavoriteButton();
 
-        if (showSnackBar) {
-            int resId = isFavorite ? R.string.favorites_added : R.string.favorites_removed;
-            Snackbar snackbar = Snackbar.make(rootView, resId, Snackbar.LENGTH_LONG);
+        if (message != null) {
+            Snackbar snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
 
             snackbar.setAction(R.string.undo, new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    switchFavorite(false);
+
+                    startTransactionLoader();
                 }
             });
 
             snackbar.show();
         }
+    }
+
+    private void startTransactionLoader() {
+        int transaction = isFavorite ? FavoritePlacesLoader.DELETE :
+                FavoritePlacesLoader.INSERT;
+
+        Bundle args = new Bundle();
+        args.putInt(TRANSACTION, transaction);
+
+        getSupportLoaderManager().initLoader(TRANSACTION_LOADER_ID, args,
+                PlaceActivity.this).forceLoad();
     }
 
     private void updateFavoriteButton() {
@@ -443,6 +472,8 @@ public class PlaceActivity extends BaseActivity
             bindTipsToViews(layoutTips, venue.getTips());
         }
 
+        venue.getPhotos().toArray(imageUrls);
+
         VenuePhotosAdapter venuePhotosAdapter = new VenuePhotosAdapter(venue.getPhotos());
         rvPhotos.setAdapter(venuePhotosAdapter);
         pbLoading.setVisibility(View.GONE);
@@ -457,6 +488,8 @@ public class PlaceActivity extends BaseActivity
         TextView tvTip, tvUserName;
 
         Tip tip;
+
+        tips.toArray(this.tips);
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -496,25 +529,55 @@ public class PlaceActivity extends BaseActivity
     @Override
     public Loader<Object> onCreateLoader(int id, Bundle args) {
 
-        PlacePhotoLoader photoLoader = new PlacePhotoLoader(this);
-        ResultCallback<PlacePhotoResult> photoResultCallback = new ResultCallback<PlacePhotoResult>() {
-            @Override
-            public void onResult(@NonNull PlacePhotoResult placePhotoResult) {
-                if (placePhotoResult.getStatus().isSuccess()) {
+        switch (id) {
+            case PLACE_PHOTO_LOADER_ID:
+                PlacePhotoLoader photoLoader = new PlacePhotoLoader(this);
+                ResultCallback<PlacePhotoResult> photoResultCallback = new ResultCallback<PlacePhotoResult>() {
+                    @Override
+                    public void onResult(@NonNull PlacePhotoResult placePhotoResult) {
+                        if (placePhotoResult.getStatus().isSuccess()) {
 
-                    Bitmap bitmap = placePhotoResult.getBitmap();
-                    ivPlace.setImageBitmap(bitmap);
-                }
-            }
-        };
-        photoLoader.initialize(apiClient, placeId, photoResultCallback);
+                            Bitmap bitmap = placePhotoResult.getBitmap();
+                            ivPlace.setImageBitmap(bitmap);
+                        }
+                    }
+                };
+                photoLoader.initialize(apiClient, placeId, photoResultCallback);
 
-        return photoLoader;
+                return photoLoader;
+
+            case QUERY_LOADER_ID:
+
+                return new QueryLoader(this, placeId);
+
+            case TRANSACTION_LOADER_ID:
+                int transaction = args.getInt(TRANSACTION);
+                return new FavoritePlacesLoader(this, transaction, place, imageUrls, tips);
+
+            default:
+                return null;
+        }
     }
 
     @Override
     public void onLoadFinished(Loader<Object> loader, Object data) {
         Log.d(TAG, "Load finished");
+        int id = loader.getId();
+
+        switch (id) {
+            case PLACE_PHOTO_LOADER_ID:
+                break;
+            case QUERY_LOADER_ID:
+                isFavorite = data != null;
+                updateFavoriteButton();
+                if (isFavorite) {
+                    place = (com.jcmb.shakemeup.places.Place) data;
+                }
+                break;
+            case TRANSACTION_LOADER_ID:
+                String message = (String) data;
+                switchFavorite(message);
+        }
     }
 
     @Override

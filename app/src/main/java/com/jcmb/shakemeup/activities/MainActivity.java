@@ -3,11 +3,14 @@ package com.jcmb.shakemeup.activities;
 import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.annotation.StringRes;
 import android.support.annotation.StyleRes;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,11 +28,25 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.jcmb.shakemeup.R;
+import com.jcmb.shakemeup.connection.Requests;
+import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
+import com.jcmb.shakemeup.places.Parser;
+import com.jcmb.shakemeup.places.Place;
+import com.jcmb.shakemeup.util.Utils;
+
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Random;
 
 public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private static final float DEFAULT_ZOOM = 14f;
+
+    private static final String PLACES = "places";
+    private static final String FIRST = "first";
     private TextSwitcher tsActionTitle;
 
     private TextSwitcher tsActionDesc;
@@ -42,11 +59,19 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private MapFragment mapFragment;
 
+    private Place[] places;
+
+    private boolean first = true;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            places = Utils.convertParcelableToPlaces(savedInstanceState.getParcelableArray(PLACES));
+            first = savedInstanceState.getBoolean(FIRST);
+        }
         initUI();
-        super.create(this);
+        super.create();
     }
 
     @SuppressLint("PrivateResource")
@@ -54,6 +79,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     {
         setContentView(R.layout.activity_main);
         setNavigationBarColor();
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         tsActionTitle = (TextSwitcher) findViewById(R.id.tsActionTitle);
         initTextSwitcher(tsActionTitle,
                 android.support.design.R.style.TextAppearance_AppCompat_Display1, R.string.getting_location);
@@ -116,17 +145,33 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         super.onLocationChanged(location);
         Log.d(TAG, "Location changed!");
         updateUiAfterLocation();
+    }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArray(PLACES, places);
+        outState.putBoolean(FIRST, first);
     }
 
     private void updateUiAfterLocation()
     {
         if(currentLocation != null && googleMap != null)
         {
-            LatLng latLng = new LatLng(currentLocation.getLatitude(),
-                    currentLocation.getLongitude());
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+            if (first) {
+                LatLng latLng = new LatLng(currentLocation.getLatitude(),
+                        currentLocation.getLongitude());
+                first = false;
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+            }
             animateMap();
+
+
+            if (places != null) {
+                putMarkers();
+            } else {
+                getPlaces();
+            }
         }
 
         tsActionTitle.setText(getString(R.string.shake_me));
@@ -237,5 +282,81 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         googleMap.setMyLocationEnabled(true);
 
         this.googleMap = googleMap;
+    }
+
+    private void getPlaces() {
+        if (currentLocation != null) {
+
+            if (places == null) {
+                Requests.searchPlacesNearby(currentLocation, this, new OnRequestCompleteListener() {
+                    @Override
+                    public void onSuccess(JSONObject jsonResponse) {
+
+                        Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+                        vibrator.vibrate(200);
+
+                        places = Parser.getPlaces(jsonResponse);
+                        if (places != null) {
+                            putMarkers();
+                        }
+                    }
+
+                    @Override
+                    public void onFail() {
+                        Log.e(TAG, "Error");
+                    }
+                });
+            } else {
+                putMarkers();
+            }
+        }
+    }
+
+    private void putMarkers() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                googleMap.clear();
+                LatLng latLng;
+                String name;
+                for (Place place : places) {
+                    latLng = new LatLng(place.getLat(), place.getLng());
+
+                    name = place.getName();
+
+                    googleMap.addMarker(new MarkerOptions().position(latLng).title(name));
+                }
+            }
+        });
+    }
+
+    protected void goToPlace() {
+        if (places != null) {
+            ArrayList<String> placeIDs = new ArrayList<>();
+
+            for (Place place : places) {
+                placeIDs.add(place.getId());
+            }
+
+            if (!placeIDs.isEmpty()) {
+                Random random = new Random();
+
+                int index = random.nextInt(placeIDs.size());
+
+                String id = placeIDs.get(index);
+
+                placeIDs.remove(index);
+
+                if (id != null) {
+                    Intent intent = new Intent(this, PlaceActivity.class);
+                    intent.putExtra(PlaceActivity.PICKUP_LATITUDE, currentLocation.getLatitude());
+                    intent.putExtra(PlaceActivity.PICKUP_LONGITUDE, currentLocation.getLongitude());
+                    intent.putExtra(PlaceActivity.PICKUP_ADDRESS, currentAddress);
+                    intent.putExtra(PlaceActivity.PLACE_ID, id);
+                    intent.putExtra(PlaceActivity.PLACE_IDS, placeIDs);
+                    startActivity(intent);
+                }
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-package com.jcmb.shakemeup.places;
+package com.jcmb.shakemeup.loaders;
 
 import android.content.Context;
 import android.support.v4.content.AsyncTaskLoader;

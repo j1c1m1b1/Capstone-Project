@@ -106,6 +106,8 @@ public class Requests {
 
         HttpUrl url = parseUrl(GM_HOST, PLACES_PATH, params, values);
 
+        Log.d(Requests.class.getSimpleName(), "" + url.toString());
+
         callAPI(url, listener);
     }
 

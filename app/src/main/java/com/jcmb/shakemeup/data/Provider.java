@@ -20,6 +20,8 @@ public class Provider extends ContentProvider {
 
     private static final int PLACE_BY_ID = 101;
 
+    private static final int PLACE_BY_PLACE_ID = 102;
+
     private static final int PLACE_IMAGES = 200;
 
     private static final int IMAGES_BY_MOVIE = 201;
@@ -39,6 +41,7 @@ public class Provider extends ContentProvider {
 
         matcher.addURI(authority, ShakeMeUpContract.PLACES_PATH, PLACES);
         matcher.addURI(authority, ShakeMeUpContract.PLACES_PATH + "/#", PLACE_BY_ID);
+        matcher.addURI(authority, ShakeMeUpContract.PLACES_PATH + "/*", PLACE_BY_PLACE_ID);
 
         matcher.addURI(authority, ShakeMeUpContract.PLACE_IMAGES_PATH, PLACE_IMAGES);
         matcher.addURI(authority, ShakeMeUpContract.PLACE_IMAGES_PATH + "?"
@@ -71,6 +74,32 @@ public class Provider extends ContentProvider {
 
         SQLiteDatabase db = helper.getReadableDatabase();
         return db.query(ShakeMeUpContract.FavoritePlace.TABLE_NAME, null, selection, selectionArgs,
+                null, null, null);
+    }
+
+    private Cursor getPlaceByPlaceId(Uri uri) {
+        String path = uri.getPath();
+
+        String placeId = path.substring(path.lastIndexOf('/') + 1);
+
+        String selection = ShakeMeUpContract.FavoritePlace.COLUMN_PLACE_ID + " = ?";
+
+        String[] selectionArgs = new String[]{placeId};
+
+        String[] columns = new String[]
+                {
+                        ShakeMeUpContract.FavoritePlace.COLUMN_PLACE_ID,
+                        ShakeMeUpContract.FavoritePlace.COLUMN_NAME,
+                        ShakeMeUpContract.FavoritePlace.COLUMN_ADDRESS,
+                        ShakeMeUpContract.FavoritePlace.COLUMN_RATING,
+                        ShakeMeUpContract.FavoritePlace.COLUMN_PRICE_RANGE,
+                        ShakeMeUpContract.FavoritePlace.COLUMN_TRAVEL_TIME,
+                        ShakeMeUpContract.FavoritePlace.COLUMN_LAT,
+                        ShakeMeUpContract.FavoritePlace.COLUMN_LNG
+                };
+
+        SQLiteDatabase db = helper.getReadableDatabase();
+        return db.query(ShakeMeUpContract.FavoritePlace.TABLE_NAME, columns, selection, selectionArgs,
                 null, null, null);
     }
 
@@ -119,6 +148,11 @@ public class Provider extends ContentProvider {
             case PLACE_BY_ID:
                 cursor = getPlaceById(uri);
                 break;
+
+            case PLACE_BY_PLACE_ID:
+                cursor = getPlaceByPlaceId(uri);
+                break;
+
             case PLACE_IMAGES:
                 cursor = getPlaceImages(uri, projection);
                 break;
@@ -224,5 +258,61 @@ public class Provider extends ContentProvider {
             getContext().getContentResolver().notifyChange(uri, null);
         }
         return rowsAffected;
+    }
+
+    @Override
+    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
+        SQLiteDatabase db = helper.getWritableDatabase();
+        int insertedRows = 0;
+        long id;
+        switch (matcher.match(uri)) {
+            case PLACES:
+                db.beginTransaction();
+                try {
+                    for (ContentValues v : values) {
+                        id = db.insert(ShakeMeUpContract.FavoritePlace.TABLE_NAME, null, v);
+                        if (id != -1) {
+                            insertedRows++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return insertedRows;
+            case PLACE_IMAGES:
+                db.beginTransaction();
+                try {
+                    for (ContentValues v : values) {
+                        id = db.insert(ShakeMeUpContract.PlaceImage.TABLE_NAME, null, v);
+                        if (id != -1) {
+                            insertedRows++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return insertedRows;
+            case TIPS:
+                db.beginTransaction();
+                try {
+                    for (ContentValues v : values) {
+                        id = db.insert(ShakeMeUpContract.Tip.TABLE_NAME, null, v);
+                        if (id != -1) {
+                            insertedRows++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return insertedRows;
+            default:
+                return super.bulkInsert(uri, values);
+        }
     }
 }

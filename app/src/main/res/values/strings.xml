@@ -71,6 +71,8 @@
     <string name="uber_client_id" translatable="false">2Js3Bb3d5f5MMSz0–8iRCP7pRyBiRduC</string>
     <string name="foursquare_client_id">JDMFQCP200BPJXX30YF2AIN4WJKWNQPLDTRY4CN01SZPXUAF</string>
     <string name="foursquare_client_secret">KGX30YDQZHBG1XJ5011UPJ4Q5FHVIXDLSQMYJJHYYDENNVAZ</string>
+    <string name="no_favorites">You haven\'t added favorites yet</string>
+    <string name="error_transaction">There was an error modifying favorites</string>
 
 
 </resources>

@@ -25,4 +25,5 @@
     <dimen name="image_preferred_size">240dp</dimen>
     <dimen name="image_preferred_size_half">120dp</dimen>
     <dimen name="image_preferred_size_quarter">60dp</dimen>
+    <dimen name="default_bar_elevation">4dp</dimen>
 </resources>

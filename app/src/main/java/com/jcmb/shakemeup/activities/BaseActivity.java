@@ -12,7 +12,6 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -38,6 +37,7 @@ import com.jcmb.shakemeup.connection.Requests;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
 import com.jcmb.shakemeup.places.Parser;
 import com.jcmb.shakemeup.util.ShakeDetector;
+import com.jcmb.shakemeup.util.Utils;
 
 import org.json.JSONObject;
 
@@ -74,9 +74,9 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    protected void create(Context context)
+    protected void create()
     {
-        startUpAccelerometer(context);
+        startUpAccelerometer();
         requestPermissions();
     }
 
@@ -249,7 +249,7 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    protected void startUpAccelerometer(final Context context)
+    protected void startUpAccelerometer()
     {
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager
@@ -261,7 +261,7 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
             public void onShake(int count) {
                 if(enabled)
                 {
-                    getPlaces(context);
+                    goToPlace();
                 }
             }
         });
@@ -323,12 +323,15 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onLocationChanged(Location location) {
-        currentLocation = location;
 
-        getCurrentAddress();
-        if(shouldRemoveUpdates)
+        if (currentLocation == null || Utils.compareLocations(currentLocation, location) > 2)
         {
-            LocationServices.FusedLocationApi.removeLocationUpdates(apiClient, this);
+            currentLocation = location;
+
+            getCurrentAddress();
+            if (shouldRemoveUpdates) {
+                LocationServices.FusedLocationApi.removeLocationUpdates(apiClient, this);
+            }
         }
     }
 
@@ -362,39 +365,8 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
         LocationServices.FusedLocationApi.requestLocationUpdates(apiClient, locationRequest, this);
     }
 
-    protected void getPlaces(final Context context)
+    protected void goToPlace()
     {
-        if(currentLocation != null)
-        {
-            Requests.searchPlacesNearby(currentLocation, this, new OnRequestCompleteListener() {
-                @Override
-                public void onSuccess(JSONObject jsonResponse) {
 
-                    Vibrator vibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
-                    vibrator.vibrate(200);
-
-                    String id = Parser.getPlaceId(jsonResponse);
-
-                    if(id != null)
-                    {
-                        Intent intent = new Intent(context, PlaceActivity.class);
-                        intent.putExtra(PlaceActivity.PICKUP_LATITUDE, currentLocation.getLatitude());
-                        intent.putExtra(PlaceActivity.PICKUP_LONGITUDE, currentLocation.getLongitude());
-                        intent.putExtra(PlaceActivity.PICKUP_ADDRESS, currentAddress);
-                        intent.putExtra(PlaceActivity.PLACE_ID, id);
-                        startActivity(intent);
-                        if(shouldFinish)
-                        {
-                            finish();
-                        }
-                    }
-                }
-
-                @Override
-                public void onFail() {
-                    Log.e(TAG, "Error");
-                }
-            });
-        }
     }
 }

@@ -45,6 +45,10 @@ public class Parser {
     private static final String PHOTO = "photo";
     private static final String USER_PHOTO_DIMEN = "300x300";
     private static final String ORIGINAL = "original";
+    private static final String GEOMETRY = "geometry";
+    private static final String LOCATION = "location";
+    private static final String LAT = "lat";
+    private static final String LNG = "lng";
 
 
     public static String getAddress(JSONObject jsonResponse)
@@ -97,6 +101,53 @@ public class Parser {
 
         return id;
     }
+
+    public static Place[] getPlaces(JSONObject jsonResponse) {
+        Place[] places = null;
+        try {
+            if (!jsonResponse.isNull(RESULTS)) {
+                JSONArray results = jsonResponse.getJSONArray(RESULTS);
+
+                if (results.length() > 0) {
+                    places = new Place[results.length()];
+
+                    JSONObject jsonPlace, geometry, location;
+
+                    String id, name;
+
+                    double lat, lng;
+
+                    Place place;
+
+                    for (int i = 0; i < results.length(); i++) {
+                        jsonPlace = results.getJSONObject(i);
+
+                        geometry = jsonPlace.getJSONObject(GEOMETRY);
+
+                        location = geometry.getJSONObject(LOCATION);
+
+                        id = jsonPlace.getString(PLACE_ID);
+
+                        lat = location.getDouble(LAT);
+
+                        lng = location.getDouble(LNG);
+
+                        name = jsonPlace.getString(NAME);
+
+                        place = new Place(id, lat, lng, name);
+
+                        places[i] = place;
+                    }
+                }
+
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return places;
+    }
+
 
     public static String getDuration(JSONObject jsonResponse)
     {
