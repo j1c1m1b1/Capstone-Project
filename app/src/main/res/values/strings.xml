@@ -7,7 +7,7 @@
 
     <string name="action_settings">Settings</string>
     <string name="location_perms_title">The location permission</string>
-    <string name="location_perms_message">We need the location permission to know the places near you</string>
+    <string name="location_perms_message">We need the location permission to know the myPlaces near you</string>
     <string name="request_perms">Request permissions</string>
 
 
@@ -55,7 +55,7 @@
     <string name="pg_3_title">Get to the venue</string>
     <string name="pg_3_subtitle">Request an Uber service to the destination automatically, without editing source or destination</string>
 
-    <!--Place Activity-->
+    <!--MyPlace Activity-->
 
     <string name="share">Share</string>
     <string name="favorites_added">Added to favorites</string>
@@ -73,6 +73,7 @@
     <string name="foursquare_client_secret">KGX30YDQZHBG1XJ5011UPJ4Q5FHVIXDLSQMYJJHYYDENNVAZ</string>
     <string name="no_favorites">You haven\'t added favorites yet</string>
     <string name="error_transaction">There was an error modifying favorites</string>
+    <string name="favorite_places">Your favorite venues</string>
 
 
 </resources>

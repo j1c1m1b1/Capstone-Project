@@ -5,6 +5,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -57,7 +58,7 @@ public class ShakeActivity extends AppCompatActivity implements GoogleApiClient.
             @Override
             public void onShake(int count) {
                 if (enabled) {
-                    getPlaces();
+                    goToPlace();
                 }
             }
         });
@@ -129,6 +130,8 @@ public class ShakeActivity extends AppCompatActivity implements GoogleApiClient.
                 "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
     }
 
-    protected void getPlaces() {
+    protected void goToPlace() {
+        Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+        vibrator.vibrate(200);
     }
 }

@@ -102,14 +102,14 @@ public class Parser {
         return id;
     }
 
-    public static Place[] getPlaces(JSONObject jsonResponse) {
-        Place[] places = null;
+    public static MyPlace[] getPlaces(JSONObject jsonResponse) {
+        MyPlace[] myPlaces = null;
         try {
             if (!jsonResponse.isNull(RESULTS)) {
                 JSONArray results = jsonResponse.getJSONArray(RESULTS);
 
                 if (results.length() > 0) {
-                    places = new Place[results.length()];
+                    myPlaces = new MyPlace[results.length()];
 
                     JSONObject jsonPlace, geometry, location;
 
@@ -117,7 +117,7 @@ public class Parser {
 
                     double lat, lng;
 
-                    Place place;
+                    MyPlace myPlace;
 
                     for (int i = 0; i < results.length(); i++) {
                         jsonPlace = results.getJSONObject(i);
@@ -134,9 +134,9 @@ public class Parser {
 
                         name = jsonPlace.getString(NAME);
 
-                        place = new Place(id, lat, lng, name);
+                        myPlace = new MyPlace(id, lat, lng, name);
 
-                        places[i] = place;
+                        myPlaces[i] = myPlace;
                     }
                 }
 
@@ -145,7 +145,7 @@ public class Parser {
             e.printStackTrace();
         }
 
-        return places;
+        return myPlaces;
     }
 
 

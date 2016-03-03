@@ -104,7 +104,17 @@
                     android:layout_marginLeft="@dimen/inner_padding"
                     android:layout_marginRight="@dimen/inner_padding"
                     android:layout_marginStart="@dimen/inner_padding"
-                    android:orientation="vertical"/>
+                    android:orientation="vertical">
+
+                    <com.jcmb.shakemeup.views.TipView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <com.jcmb.shakemeup.views.TipView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
 
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/rvPhotos"

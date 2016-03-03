@@ -3,7 +3,8 @@ package com.jcmb.shakemeup.util;
 import android.location.Location;
 import android.os.Parcelable;
 
-import com.jcmb.shakemeup.places.Place;
+import com.jcmb.shakemeup.places.MyPlace;
+import com.jcmb.shakemeup.places.Tip;
 
 import java.util.Arrays;
 
@@ -14,8 +15,8 @@ public class Utils {
 
     private static final double EARTH_RADIUS = 6371;
 
-    public static Place[] convertParcelableToPlaces(Parcelable[] parcelableArray) {
-        return Arrays.copyOf(parcelableArray, parcelableArray.length, Place[].class);
+    public static MyPlace[] convertParcelableToPlaces(Parcelable[] parcelableArray) {
+        return Arrays.copyOf(parcelableArray, parcelableArray.length, MyPlace[].class);
     }
 
     /**
@@ -48,5 +49,9 @@ public class Utils {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         return earthRadius * c;
+    }
+
+    public static Tip[] convertParcelableToTips(Parcelable[] parcelableArray) {
+        return Arrays.copyOf(parcelableArray, parcelableArray.length, Tip[].class);
     }
 }

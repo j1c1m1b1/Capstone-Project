@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.support.annotation.StringRes;
 import android.support.annotation.StyleRes;
 import android.support.v7.widget.Toolbar;
@@ -32,8 +31,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.connection.Requests;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
+import com.jcmb.shakemeup.places.MyPlace;
 import com.jcmb.shakemeup.places.Parser;
-import com.jcmb.shakemeup.places.Place;
 import com.jcmb.shakemeup.util.Utils;
 
 import org.json.JSONObject;
@@ -45,7 +44,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private static final float DEFAULT_ZOOM = 14f;
 
-    private static final String PLACES = "places";
+    private static final String PLACES = "myPlaces";
     private static final String FIRST = "first";
     private TextSwitcher tsActionTitle;
 
@@ -59,7 +58,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private MapFragment mapFragment;
 
-    private Place[] places;
+    private MyPlace[] myPlaces;
 
     private boolean first = true;
 
@@ -67,7 +66,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
-            places = Utils.convertParcelableToPlaces(savedInstanceState.getParcelableArray(PLACES));
+            myPlaces = Utils.convertParcelableToPlaces(savedInstanceState.getParcelableArray(PLACES));
             first = savedInstanceState.getBoolean(FIRST);
         }
         initUI();
@@ -119,6 +118,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent intent = new Intent(this, FavoritePlacesActivity.class);
+            startActivity(intent);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -150,7 +151,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArray(PLACES, places);
+        outState.putParcelableArray(PLACES, myPlaces);
         outState.putBoolean(FIRST, first);
     }
 
@@ -167,7 +168,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
             animateMap();
 
 
-            if (places != null) {
+            if (myPlaces != null) {
                 putMarkers();
             } else {
                 getPlaces();
@@ -287,16 +288,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private void getPlaces() {
         if (currentLocation != null) {
 
-            if (places == null) {
+            if (myPlaces == null) {
                 Requests.searchPlacesNearby(currentLocation, this, new OnRequestCompleteListener() {
                     @Override
                     public void onSuccess(JSONObject jsonResponse) {
 
-                        Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
-                        vibrator.vibrate(200);
-
-                        places = Parser.getPlaces(jsonResponse);
-                        if (places != null) {
+                        myPlaces = Parser.getPlaces(jsonResponse);
+                        if (myPlaces != null) {
                             putMarkers();
                         }
                     }
@@ -319,10 +317,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 googleMap.clear();
                 LatLng latLng;
                 String name;
-                for (Place place : places) {
-                    latLng = new LatLng(place.getLat(), place.getLng());
+                for (MyPlace myPlace : myPlaces) {
+                    latLng = new LatLng(myPlace.getLat(), myPlace.getLng());
 
-                    name = place.getName();
+                    name = myPlace.getName();
 
                     googleMap.addMarker(new MarkerOptions().position(latLng).title(name));
                 }
@@ -330,12 +328,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         });
     }
 
+    @Override
     protected void goToPlace() {
-        if (places != null) {
+        super.goToPlace();
+        if (myPlaces != null) {
             ArrayList<String> placeIDs = new ArrayList<>();
 
-            for (Place place : places) {
-                placeIDs.add(place.getId());
+            for (MyPlace myPlace : myPlaces) {
+                placeIDs.add(myPlace.getId());
             }
 
             if (!placeIDs.isEmpty()) {

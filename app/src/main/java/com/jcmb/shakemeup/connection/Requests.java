@@ -106,8 +106,6 @@ public class Requests {
 
         HttpUrl url = parseUrl(GM_HOST, PLACES_PATH, params, values);
 
-        Log.d(Requests.class.getSimpleName(), "" + url.toString());
-
         callAPI(url, listener);
     }
 
@@ -161,8 +159,6 @@ public class Requests {
 
         HttpUrl url = parseUrl(FS_HOST, VENUES_PATH, params, values);
 
-        Log.d(Requests.class.getSimpleName(), "" + url.toString());
-
         callAPI(url, listener);
     }
 
@@ -215,6 +211,8 @@ public class Requests {
         }
 
         url = urlBuilder.build();
+
+        Log.d(Requests.class.getSimpleName(), "" + url.toString());
 
         return url;
     }
