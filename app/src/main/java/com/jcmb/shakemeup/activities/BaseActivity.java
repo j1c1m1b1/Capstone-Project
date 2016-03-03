@@ -61,8 +61,7 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
     protected Location currentLocation;
 
     protected String currentAddress;
-    protected boolean shouldFinish = true;
-    protected boolean shouldRemoveUpdates = true;
+    protected boolean shouldUpdateMap;
     private ShakeDetector shakeDetector;
     private SensorManager sensorManager;
     private Sensor accelerometer;
@@ -325,28 +324,28 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     public void onLocationChanged(Location location) {
 
-        if (currentLocation == null || Utils.compareLocations(currentLocation, location) > 2)
+        shouldUpdateMap = currentLocation == null ||
+                Utils.compareLocations(currentLocation, location) > 2;
+
+        if (shouldUpdateMap)
         {
             currentLocation = location;
-
             getCurrentAddress();
-            if (shouldRemoveUpdates) {
-                LocationServices.FusedLocationApi.removeLocationUpdates(apiClient, this);
-            }
         }
     }
 
     private void getCurrentAddress() {
         OnRequestCompleteListener onRequestCompleteListener =
                 new OnRequestCompleteListener() {
-                    @Override
-                    public void onSuccess(JSONObject jsonResponse) {
-                        currentAddress = Parser.getAddress(jsonResponse);
-                    }
 
                     @Override
-                    public void onFail() {
-                        Log.e(MainActivity.class.getSimpleName(), "Error getting current location address");
+                    public void onComplete(JSONObject jsonResponse, int status) {
+                        if (status == Requests.SERVICE_STATUS_SUCCESS) {
+                            currentAddress = Parser.getAddress(jsonResponse);
+                        } else {
+                            Log.e(MainActivity.class.getSimpleName(),
+                                    "Error getting current location address");
+                        }
                     }
                 };
 
@@ -357,7 +356,8 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.i(this.getClass().getSimpleName(),
-                "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
+                "Connection failed: ConnectionResult.getErrorCode() = "
+                        + connectionResult.getErrorCode());
     }
 
     private void requestLocationUpdates()

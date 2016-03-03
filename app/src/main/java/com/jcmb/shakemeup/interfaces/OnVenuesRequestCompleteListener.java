@@ -7,7 +7,5 @@ import org.json.JSONObject;
  */
 public interface OnVenuesRequestCompleteListener {
 
-    void onSuccess(JSONObject jsonObject);
-
-    void onFail();
+    void onComplete(JSONObject jsonObject, int status);
 }

@@ -1,7 +1,12 @@
 package com.jcmb.shakemeup.util;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.location.Location;
 import android.os.Parcelable;
+import android.support.annotation.DrawableRes;
+import android.support.graphics.drawable.VectorDrawableCompat;
 
 import com.jcmb.shakemeup.places.MyPlace;
 import com.jcmb.shakemeup.places.Tip;
@@ -53,5 +58,24 @@ public class Utils {
 
     public static Tip[] convertParcelableToTips(Parcelable[] parcelableArray) {
         return Arrays.copyOf(parcelableArray, parcelableArray.length, Tip[].class);
+    }
+
+
+    public static Bitmap getBitmap(@DrawableRes int resId, Context context) {
+
+        Bitmap bitmap = null;
+
+        VectorDrawableCompat vectorDrawable =
+                VectorDrawableCompat.create(context.getResources(), resId, null);
+
+        if (vectorDrawable != null) {
+            bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(),
+                    vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            vectorDrawable.draw(canvas);
+
+        }
+        return bitmap;
     }
 }

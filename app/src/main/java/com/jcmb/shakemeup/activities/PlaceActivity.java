@@ -430,21 +430,19 @@ public class PlaceActivity extends ShakeActivity
     private void getDistanceOfPlace(double dropOffLat, double dropOffLng) {
         Requests.getDistanceOfPlace(pickupLat, pickupLng, dropOffLat, dropOffLng,
                 PlaceActivity.this, new OnRequestCompleteListener() {
-                    @Override
-                    public void onSuccess(JSONObject jsonResponse) {
-                        final String duration = Parser.getDuration(jsonResponse);
-                        myPlace.setTravelTime(duration);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                tvDuration.setText(duration);
-                            }
-                        });
-                    }
 
                     @Override
-                    public void onFail() {
-
+                    public void onComplete(JSONObject jsonResponse, int status) {
+                        if (status == Requests.SERVICE_STATUS_SUCCESS) {
+                            final String duration = Parser.getDuration(jsonResponse);
+                            myPlace.setTravelTime(duration);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tvDuration.setText(duration);
+                                }
+                            });
+                        }
                     }
                 });
     }
@@ -460,24 +458,24 @@ public class PlaceActivity extends ShakeActivity
 
         Requests.getFoursquareVenuesAt(lat, lng, placeName, clientId, clientSecret,
                 new OnVenuesRequestCompleteListener() {
-                    @Override
-                    public void onSuccess(JSONObject jsonResponse) {
-                        String id = Parser.getVenueId(jsonResponse, placeName);
-                        if (id != null) {
-                            getFoursquareVenueWithId(id, clientId, clientSecret);
-                        } else {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    pbLoading.setVisibility(View.GONE);
-                                }
-                            });
-                        }
-                    }
 
                     @Override
-                    public void onFail() {
-                        Log.e(TAG, "There are no foursquare venues");
+                    public void onComplete(JSONObject jsonObject, int status) {
+                        if (status == Requests.SERVICE_STATUS_SUCCESS) {
+                            String id = Parser.getVenueId(jsonObject, placeName);
+                            if (id != null) {
+                                getFoursquareVenueWithId(id, clientId, clientSecret);
+                            } else {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        pbLoading.setVisibility(View.GONE);
+                                    }
+                                });
+                            }
+                        } else {
+                            Log.e(TAG, "There are no foursquare venues");
+                        }
                     }
                 });
     }
@@ -485,23 +483,23 @@ public class PlaceActivity extends ShakeActivity
     private void getFoursquareVenueWithId(final String id, String clientId, String clientSecret)
     {
         Requests.getFoursquareVenue(id, clientId, clientSecret, new OnRequestCompleteListener() {
-            @Override
-            public void onSuccess(JSONObject jsonResponse) {
-                Log.d(TAG, "Foursquare venue found: " + id);
-
-                final Venue venue = Parser.getVenue(jsonResponse);
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        refreshVenueUI(venue);
-                    }
-                });
-            }
 
             @Override
-            public void onFail() {
-                Log.e(TAG, "There are no foursquare venues");
+            public void onComplete(JSONObject jsonResponse, int status) {
+                if (status == Requests.SERVICE_STATUS_SUCCESS) {
+                    Log.d(TAG, "Foursquare venue found: " + id);
+
+                    final Venue venue = Parser.getVenue(jsonResponse);
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            refreshVenueUI(venue);
+                        }
+                    });
+                } else {
+                    Log.e(TAG, "There are no foursquare venues");
+                }
             }
         });
     }

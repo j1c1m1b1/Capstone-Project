@@ -39,6 +39,11 @@
     <string name="getting_location_desc">We are fetching your location…</string>
     <string name="shake_me">Start Shaking!</string>
     <string name="shake_me_desc">Shake me to fetch a random restaurant</string>
+    <string name="loading">Loading</string>
+    <string name="loading_places">Obtaining venues…</string>
+    <string name="error_title">Sorry!</string>
+    <string name="error_server_down">The server appear to be down.\nTry again later</string>
+    <string name="error_corrupted_data">The information appears to be wrong.\nTry again later</string>
 
     <!--Fragment 1-->
     <string name="food">Food</string>
@@ -61,6 +66,9 @@
     <string name="favorites_added">Added to favorites</string>
     <string name="favorites_removed">Removed from favorites</string>
     <string name="undo">Undo</string>
+    <string name="no_favorites">You haven\'t added favorites yet</string>
+    <string name="error_transaction">There was an error modifying favorites</string>
+    <string name="favorite_places">Your favorite venues</string>
     <string name="map_intent_uri_format">geo:%1$f,%2$f?q=%3$f,%4$f</string>
 
     <!--Content Provider-->
@@ -71,9 +79,6 @@
     <string name="uber_client_id" translatable="false">2Js3Bb3d5f5MMSz0–8iRCP7pRyBiRduC</string>
     <string name="foursquare_client_id">JDMFQCP200BPJXX30YF2AIN4WJKWNQPLDTRY4CN01SZPXUAF</string>
     <string name="foursquare_client_secret">KGX30YDQZHBG1XJ5011UPJ4Q5FHVIXDLSQMYJJHYYDENNVAZ</string>
-    <string name="no_favorites">You haven\'t added favorites yet</string>
-    <string name="error_transaction">There was an error modifying favorites</string>
-    <string name="favorite_places">Your favorite venues</string>
 
 
 </resources>

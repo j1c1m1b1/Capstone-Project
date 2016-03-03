@@ -5,6 +5,7 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="default_bar_elevation">4dp</dimen>
 
 
     <dimen name="inner_padding">16dp</dimen>
@@ -25,5 +26,9 @@
     <dimen name="image_preferred_size">240dp</dimen>
     <dimen name="image_preferred_size_half">120dp</dimen>
     <dimen name="image_preferred_size_quarter">60dp</dimen>
-    <dimen name="default_bar_elevation">4dp</dimen>
+
+    <!--Progress Dialog-->
+    <dimen name="progress_dialog_size">48dp</dimen>
+
+
 </resources>

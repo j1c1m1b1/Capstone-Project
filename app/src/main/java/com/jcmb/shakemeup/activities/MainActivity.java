@@ -3,12 +3,15 @@ package com.jcmb.shakemeup.activities;
 import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
 import android.support.annotation.StyleRes;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -17,6 +20,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
@@ -26,6 +30,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.jcmb.shakemeup.R;
@@ -33,6 +38,7 @@ import com.jcmb.shakemeup.connection.Requests;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
 import com.jcmb.shakemeup.places.MyPlace;
 import com.jcmb.shakemeup.places.Parser;
+import com.jcmb.shakemeup.util.MaterialProgressDrawable;
 import com.jcmb.shakemeup.util.Utils;
 
 import org.json.JSONObject;
@@ -59,6 +65,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private MapFragment mapFragment;
 
     private MyPlace[] myPlaces;
+
+    private AlertDialog loadingDialog;
 
     private boolean first = true;
 
@@ -94,6 +102,19 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
         mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        @SuppressLint("InflateParams")
+        View view = getLayoutInflater().inflate(R.layout.dialog_progress, null);
+
+        ImageView ivProgress = (ImageView) view.findViewById(R.id.ivProgress);
+        ivProgress.setBackground(new MaterialProgressDrawable(this, view));
+
+        builder.setView(view);
+
+        loadingDialog = builder.create();
+        loadingDialog.setCancelable(false);
     }
 
     @Override
@@ -135,10 +156,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        shouldFinish = false;
-        shouldRemoveUpdates = false;
+    protected void onStop() {
+        super.onStop();
+        if (loadingDialog.isShowing()) {
+            loadingDialog.dismiss();
+        }
     }
 
     @Override
@@ -160,18 +182,19 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         if(currentLocation != null && googleMap != null)
         {
             if (first) {
+                animateMap();
+                first = false;
+            }
+
+            if (shouldUpdateMap) {
                 LatLng latLng = new LatLng(currentLocation.getLatitude(),
                         currentLocation.getLongitude());
-                first = false;
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
-            }
-            animateMap();
-
-
-            if (myPlaces != null) {
-                putMarkers();
-            } else {
-                getPlaces();
+                if (myPlaces != null) {
+                    putMarkers();
+                } else {
+                    getPlaces();
+                }
             }
         }
 
@@ -287,21 +310,30 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private void getPlaces() {
         if (currentLocation != null) {
+            showLoadingDialog();
 
             if (myPlaces == null) {
                 Requests.searchPlacesNearby(currentLocation, this, new OnRequestCompleteListener() {
-                    @Override
-                    public void onSuccess(JSONObject jsonResponse) {
 
-                        myPlaces = Parser.getPlaces(jsonResponse);
-                        if (myPlaces != null) {
-                            putMarkers();
+                    @Override
+                    public void onComplete(JSONObject jsonResponse, int status) {
+                        loadingDialog.dismiss();
+                        switch (status) {
+                            case Requests.SERVICE_STATUS_SUCCESS:
+                                myPlaces = Parser.getPlaces(jsonResponse);
+                                if (myPlaces != null) {
+                                    putMarkers();
+                                }
+                                break;
+                            case Requests.SERVICE_STATUS_DOWN:
+                                Log.e(TAG, "Error");
+                                showErrorDialog(R.string.error_server_down);
+                                break;
+                            case Requests.SERVICE_STATUS_INVALID:
+                                Log.e(TAG, "Error");
+                                showErrorDialog(R.string.error_corrupted_data);
+                                break;
                         }
-                    }
-
-                    @Override
-                    public void onFail() {
-                        Log.e(TAG, "Error");
                     }
                 });
             } else {
@@ -317,12 +349,23 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 googleMap.clear();
                 LatLng latLng;
                 String name;
+                Bitmap bitmap = Utils.getBitmap(R.drawable.vector_drawable_marker,
+                        MainActivity.this);
+                MarkerOptions options;
                 for (MyPlace myPlace : myPlaces) {
                     latLng = new LatLng(myPlace.getLat(), myPlace.getLng());
 
                     name = myPlace.getName();
 
-                    googleMap.addMarker(new MarkerOptions().position(latLng).title(name));
+                    options = new MarkerOptions()
+                            .position(latLng).title(name);
+                    if (bitmap != null) {
+                        googleMap.addMarker(options
+                                .icon(BitmapDescriptorFactory.fromBitmap(bitmap)));
+                    } else {
+                        googleMap.addMarker(options);
+                    }
+
                 }
             }
         });
@@ -358,5 +401,36 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 }
             }
         }
+    }
+
+    public void showLoadingDialog() {
+        loadingDialog.show();
+    }
+
+    public void showErrorDialog(@StringRes int resId) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        @SuppressLint("InflateParams")
+        View view = getLayoutInflater().inflate(R.layout.dialog_error, null);
+
+        TextView tvMessage = (TextView) view.findViewById(R.id.tvMessage);
+        tvMessage.setText(resId);
+
+        builder.setView(view)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                });
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                builder.show();
+            }
+        });
+
+
     }
 }

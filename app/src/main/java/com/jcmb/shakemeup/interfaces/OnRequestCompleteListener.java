@@ -7,7 +7,5 @@ import org.json.JSONObject;
  */
 public interface OnRequestCompleteListener {
 
-    void onSuccess(JSONObject jsonResponse);
-
-    void onFail();
+    void onComplete(JSONObject jsonResponse, int status);
 }
