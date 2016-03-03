@@ -10,18 +10,16 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.jcmb.shakemeup.R;
 
-import java.util.ArrayList;
-
 /**
  * @author Julio Mendoza on 1/20/16.
  */
 public class VenuePhotosAdapter extends RecyclerView.Adapter<VenuePhotosAdapter.ViewHolder> {
 
-    private ArrayList<String> photoUrls;
+    private String[] photoUrls;
 
     private Context context;
 
-    public VenuePhotosAdapter(ArrayList<String> photoUrls) {
+    public VenuePhotosAdapter(String[] photoUrls) {
         this.photoUrls = photoUrls;
     }
 
@@ -38,13 +36,13 @@ public class VenuePhotosAdapter extends RecyclerView.Adapter<VenuePhotosAdapter.
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        String photoUrl = photoUrls.get(position);
+        String photoUrl = photoUrls[position];
         holder.bind(photoUrl, context);
     }
 
     @Override
     public int getItemCount() {
-        return photoUrls == null ? 0: photoUrls.size();
+        return photoUrls == null ? 0 : photoUrls.length;
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -59,7 +57,7 @@ public class VenuePhotosAdapter extends RecyclerView.Adapter<VenuePhotosAdapter.
         public void bind(String imageUrl, Context context)
         {
             ImageView ivPhoto = (ImageView)view.findViewById(R.id.ivPhoto);
-            Glide.with(context).load(imageUrl).into(ivPhoto);
+            Glide.with(context).load(imageUrl).placeholder(R.drawable.default_placeholder).into(ivPhoto);
         }
     }
 }

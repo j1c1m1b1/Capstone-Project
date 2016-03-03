@@ -22,7 +22,6 @@ import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -33,7 +32,6 @@ import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBuffer;
@@ -53,9 +51,12 @@ import com.jcmb.shakemeup.interfaces.OnVenuesRequestCompleteListener;
 import com.jcmb.shakemeup.loaders.FavoritePlacesLoader;
 import com.jcmb.shakemeup.loaders.PlacePhotoLoader;
 import com.jcmb.shakemeup.loaders.QueryLoader;
+import com.jcmb.shakemeup.places.MyPlace;
 import com.jcmb.shakemeup.places.Parser;
 import com.jcmb.shakemeup.places.Tip;
 import com.jcmb.shakemeup.places.Venue;
+import com.jcmb.shakemeup.util.Utils;
+import com.jcmb.shakemeup.views.TipView;
 import com.uber.sdk.android.rides.RequestButton;
 import com.uber.sdk.android.rides.RideParameters;
 
@@ -63,6 +64,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -77,6 +79,9 @@ public class PlaceActivity extends ShakeActivity
     protected static final String TAG = PlaceActivity.class.getSimpleName();
     private static final String FAVORITE = "favorite";
     private static final String TRANSACTION = "transaction";
+    private static final String PLACE = "place";
+    private static final String TIPS = "tips";
+    private static final String IMAGE_URLS = "imageUrls";
     private static final int PLACE_PHOTO_LOADER_ID = 100;
     private static final int QUERY_LOADER_ID = 200;
     private static final int TRANSACTION_LOADER_ID = 300;
@@ -123,7 +128,7 @@ public class PlaceActivity extends ShakeActivity
 
     private ArrayList<String> placeIDs;
 
-    private com.jcmb.shakemeup.places.Place place;
+    private MyPlace myPlace;
 
     private String[] imageUrls;
 
@@ -131,9 +136,22 @@ public class PlaceActivity extends ShakeActivity
 
     private MenuItem shareItem;
 
+    private boolean loading;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            placeId = savedInstanceState.getString(PLACE_ID);
+            pickupLat = savedInstanceState.getDouble(PICKUP_LATITUDE);
+            pickupLng = savedInstanceState.getDouble(PICKUP_LONGITUDE);
+            pickupAddress = savedInstanceState.getString(PICKUP_ADDRESS);
+            placeIDs = savedInstanceState.getStringArrayList(PLACE_IDS);
+            myPlace = savedInstanceState.getParcelable(PLACE);
+            tips = Utils.convertParcelableToTips(savedInstanceState.getParcelableArray(TIPS));
+            imageUrls = savedInstanceState.getStringArray(IMAGE_URLS);
+        }
 
         initUI();
 
@@ -179,6 +197,8 @@ public class PlaceActivity extends ShakeActivity
 
         btnFavorite = (FloatingActionButton) findViewById(R.id.btnFavorite);
 
+        btnFavorite.setEnabled(false);
+
         btnFavorite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -209,10 +229,10 @@ public class PlaceActivity extends ShakeActivity
             pickupAddress = intent.getStringExtra(PICKUP_ADDRESS);
             placeIDs = intent.getStringArrayListExtra(PLACE_IDS);
             isFavorite = intent.getBooleanExtra(FAVORITE, false);
-            if (isFavorite) {
-                getFavoritePlace();
-            } else {
+            if (myPlace == null) {
                 getSupportLoaderManager().initLoader(QUERY_LOADER_ID, null, this).forceLoad();
+            } else {
+                bindPlace();
             }
             updateFavoriteButton();
         }
@@ -228,6 +248,9 @@ public class PlaceActivity extends ShakeActivity
             pickupLng = savedInstanceState.getDouble(PICKUP_LONGITUDE);
             pickupAddress = savedInstanceState.getString(PICKUP_ADDRESS);
             placeIDs = savedInstanceState.getStringArrayList(PLACE_IDS);
+            myPlace = savedInstanceState.getParcelable(PLACE);
+            tips = Utils.convertParcelableToTips(savedInstanceState.getParcelableArray(TIPS));
+            imageUrls = savedInstanceState.getStringArray(IMAGE_URLS);
         }
     }
 
@@ -239,14 +262,21 @@ public class PlaceActivity extends ShakeActivity
         outState.putDouble(PICKUP_LONGITUDE, pickupLng);
         outState.putString(PICKUP_ADDRESS, pickupAddress);
         outState.putStringArrayList(PLACE_IDS, placeIDs);
+        if (myPlace != null) {
+            outState.putParcelable(PLACE, myPlace);
+        }
+        if (tips != null) {
+            outState.putParcelableArray(TIPS, tips);
+        }
+        if (imageUrls != null) {
+            outState.putStringArray(IMAGE_URLS, imageUrls);
+        }
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         super.onConnected(bundle);
-        Loader<Object> loader = getSupportLoaderManager().getLoader(QUERY_LOADER_ID);
-
-        if (!isFavorite && !loader.isStarted()) {
+        if (!isFavorite && !loading) {
             getPlace();
         }
     }
@@ -261,32 +291,23 @@ public class PlaceActivity extends ShakeActivity
                         {
                             Place place = places.get(0);
 
-                            toolbarLayout.setTitle(place.getName());
+                            double lat = place.getLatLng().latitude;
+                            double lng = place.getLatLng().longitude;
 
-                            rbPlace.setRating(place.getRating());
+                            myPlace = new MyPlace(placeId, lat, lng, place.getName().toString(),
+                                    place.getAddress().toString(), place.getRating(),
+                                    "", place.getPriceLevel());
 
-                            tvByline.setText(place.getAddress());
+                            bindPlace();
 
-                            String priceRange = parsePriceRange(place.getPriceLevel());
+                            initializeShareIntent(lat, lng);
 
-                            tvPriceRange.setText(Html.fromHtml(priceRange));
-
-                            double dropOffLat = place.getLatLng().latitude;
-                            double dropOffLng = place.getLatLng().longitude;
-
-                            Log.d(TAG, "" + place.getName() + ", " + dropOffLat +
-                                    ", " + dropOffLng);
-
-                            initializeShareIntent(dropOffLat, dropOffLng);
-
-                            initializeUberButton(dropOffLat, dropOffLng,
+                            initializeUberButton(lat, lng,
                                     place.getName().toString(), place.getAddress().toString());
 
-                            getDistanceOfPlace(dropOffLat, dropOffLng);
+                            getDistanceOfPlace(lat, lng);
 
-                            getFoursquareVenues(dropOffLat, dropOffLng, place.getName().toString());
-
-                            setupMap(place.getLatLng());
+                            getFoursquareVenues(lat, lng, place.getName().toString());
 
                         }
                         places.release();
@@ -294,6 +315,37 @@ public class PlaceActivity extends ShakeActivity
                 });
 
         getSupportLoaderManager().initLoader(PLACE_PHOTO_LOADER_ID, null, this).forceLoad();
+    }
+
+    private void bindPlace() {
+        toolbarLayout.setTitle(myPlace.getName());
+
+        rbPlace.setRating((float) myPlace.getRating());
+
+        tvByline.setText(myPlace.getAddress());
+
+        String priceRange = parsePriceRange(myPlace.getPriceRange());
+
+        tvPriceRange.setText(Html.fromHtml(priceRange));
+
+        LatLng latLng = new LatLng(myPlace.getLat(), myPlace.getLng());
+
+        if (!myPlace.getTravelTime().isEmpty()) {
+            tvDuration.setText(myPlace.getTravelTime());
+        }
+
+        setupMap(latLng);
+
+        pbLoading.setVisibility(View.GONE);
+
+        if (myPlace.getImageUrls() != null) {
+            layoutVenue.setVisibility(View.VISIBLE);
+            bindImageUrls();
+        }
+
+        if (myPlace.getTips() != null) {
+            bindTips();
+        }
     }
 
     private void initializeShareIntent(double lat, double lng) {
@@ -308,16 +360,12 @@ public class PlaceActivity extends ShakeActivity
         shareItem.setVisible(true);
 
         invalidateOptionsMenu();
-
-    }
-
-    private void getFavoritePlace() {
-
     }
 
     private void switchFavorite(String message) {
         isFavorite = !isFavorite;
-        //Save or delete from favorites
+
+        getSupportLoaderManager().destroyLoader(TRANSACTION_LOADER_ID);
 
         updateFavoriteButton();
 
@@ -337,17 +385,22 @@ public class PlaceActivity extends ShakeActivity
     }
 
     private void startTransactionLoader() {
+        if (btnFavorite.isEnabled()) {
+            btnFavorite.setEnabled(false);
+        }
+
         int transaction = isFavorite ? FavoritePlacesLoader.DELETE :
                 FavoritePlacesLoader.INSERT;
 
         Bundle args = new Bundle();
         args.putInt(TRANSACTION, transaction);
 
-        getSupportLoaderManager().initLoader(TRANSACTION_LOADER_ID, args,
-                PlaceActivity.this).forceLoad();
+        getSupportLoaderManager().initLoader(TRANSACTION_LOADER_ID, args, this).forceLoad();
     }
 
     private void updateFavoriteButton() {
+        btnFavorite.setEnabled(true);
+
         int resId = isFavorite ? R.drawable.ic_star_white_18dp :
                 R.drawable.ic_star_border_white_18dp;
 
@@ -380,6 +433,7 @@ public class PlaceActivity extends ShakeActivity
                     @Override
                     public void onSuccess(JSONObject jsonResponse) {
                         final String duration = Parser.getDuration(jsonResponse);
+                        myPlace.setTravelTime(duration);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -465,52 +519,41 @@ public class PlaceActivity extends ShakeActivity
             }
         });
 
-        LinearLayout layoutTips = (LinearLayout)findViewById(R.id.layoutTips);
+        tips = new Tip[venue.getTips().size()];
+        venue.getTips().toArray(tips);
+        bindTips();
 
-        if(layoutTips.getChildCount() == 0)
-        {
-            bindTipsToViews(layoutTips, venue.getTips());
-        }
-
+        imageUrls = new String[venue.getPhotos().size()];
         venue.getPhotos().toArray(imageUrls);
 
-        VenuePhotosAdapter venuePhotosAdapter = new VenuePhotosAdapter(venue.getPhotos());
-        rvPhotos.setAdapter(venuePhotosAdapter);
+        bindImageUrls();
+
         pbLoading.setVisibility(View.GONE);
         layoutVenue.setVisibility(View.VISIBLE);
 
     }
 
-    private void bindTipsToViews(LinearLayout layoutTips, ArrayList<Tip> tips)
+    private void bindTips()
     {
-        LinearLayout viewItemTip;
-        ImageView ivUser;
-        TextView tvTip, tvUserName;
-
-        Tip tip;
-
-        tips.toArray(this.tips);
-
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-
-
-        for(int i = 0; i < tips.size(); i ++)
+        LinearLayout layoutTips = (LinearLayout) findViewById(R.id.layoutTips);
+        if (tips != null && tips.length > 0 && layoutTips.getVisibility() == View.VISIBLE)
         {
-            viewItemTip = (LinearLayout) LayoutInflater.from(this)
-                    .inflate(R.layout.view_item_tip, layoutTips, false);
-            ivUser = (ImageView)viewItemTip.findViewById(R.id.ivUser);
-            tvTip = (TextView) viewItemTip.findViewById(R.id.tvTip);
-            tvUserName = (TextView) viewItemTip.findViewById(R.id.tvUserName);
+            TipView viewItemTip;
+            Tip tip;
 
-            tip = tips.get(i);
+            for (int i = 0; i < layoutTips.getChildCount(); i++) {
+                tip = tips[i];
+                viewItemTip = (TipView) layoutTips.getChildAt(i);
+                viewItemTip.bind(tip);
+            }
 
-            Glide.with(this).load(tip.getUserPhotoUrl()).into(ivUser);
-            tvTip.setText(tip.getText());
-            tvUserName.setText(tip.getUserName());
-            layoutTips.addView(viewItemTip, i, params);
+            layoutTips.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void bindImageUrls() {
+        VenuePhotosAdapter venuePhotosAdapter = new VenuePhotosAdapter(imageUrls);
+        rvPhotos.setAdapter(venuePhotosAdapter);
     }
 
     private void initializeUberButton(double dropOffLat, double dropOffLng, String name,
@@ -547,12 +590,12 @@ public class PlaceActivity extends ShakeActivity
                 return photoLoader;
 
             case QUERY_LOADER_ID:
-
+                loading = true;
                 return new QueryLoader(this, placeId);
 
             case TRANSACTION_LOADER_ID:
                 int transaction = args.getInt(TRANSACTION);
-                return new FavoritePlacesLoader(this, transaction, place, imageUrls, tips);
+                return new FavoritePlacesLoader(this, transaction, myPlace, imageUrls, tips);
 
             default:
                 return null;
@@ -571,8 +614,10 @@ public class PlaceActivity extends ShakeActivity
                 isFavorite = data != null;
                 updateFavoriteButton();
                 if (isFavorite) {
-                    place = (com.jcmb.shakemeup.places.Place) data;
+                    myPlace = (MyPlace) data;
+                    bindPlace();
                 }
+                loading = false;
                 break;
             case TRANSACTION_LOADER_ID:
                 String message = (String) data;
@@ -624,5 +669,30 @@ public class PlaceActivity extends ShakeActivity
         shareActionProvider =
                 (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
         return true;
+    }
+
+    @Override
+    protected void goToPlace() {
+        super.goToPlace();
+        if (!placeIDs.isEmpty()) {
+            Random random = new Random();
+
+            int index = random.nextInt(placeIDs.size());
+
+            String id = placeIDs.get(index);
+
+            placeIDs.remove(index);
+
+            if (id != null) {
+                Intent intent = new Intent(this, PlaceActivity.class);
+                intent.putExtra(PlaceActivity.PICKUP_LATITUDE, pickupLat);
+                intent.putExtra(PlaceActivity.PICKUP_LONGITUDE, pickupLng);
+                intent.putExtra(PlaceActivity.PICKUP_ADDRESS, pickupAddress);
+                intent.putExtra(PlaceActivity.PLACE_ID, id);
+                intent.putExtra(PlaceActivity.PLACE_IDS, placeIDs);
+                startActivity(intent);
+                finish();
+            }
+        }
     }
 }

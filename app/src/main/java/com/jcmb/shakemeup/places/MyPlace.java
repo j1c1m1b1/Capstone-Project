@@ -6,37 +6,41 @@ import android.os.Parcelable;
 /**
  * @author Julio Mendoza on 3/2/16.
  */
-public class Place implements Parcelable {
+public class MyPlace implements Parcelable {
 
-    public static final Creator<Place> CREATOR = new Creator<Place>() {
+    public static final Creator<MyPlace> CREATOR = new Creator<MyPlace>() {
         @Override
-        public Place createFromParcel(Parcel in) {
-            return new Place(in);
+        public MyPlace createFromParcel(Parcel in) {
+            return new MyPlace(in);
         }
 
         @Override
-        public Place[] newArray(int size) {
-            return new Place[size];
+        public MyPlace[] newArray(int size) {
+            return new MyPlace[size];
         }
     };
+
     private String id;
     private double lat;
     private double lng;
     private String name;
     private String address;
     private double rating;
-    private int travelTime;
+    private String travelTime;
     private int priceRange;
 
-    public Place(String id, double lat, double lng, String name) {
+    private String[] imageUrls;
+    private Tip[] tips;
+
+    public MyPlace(String id, double lat, double lng, String name) {
         this.id = id;
         this.lat = lat;
         this.lng = lng;
         this.name = name;
     }
 
-    public Place(String id, double lat, double lng, String name, String address, double rating,
-                 int travelTime, int priceRange) {
+    public MyPlace(String id, double lat, double lng, String name, String address, double rating,
+                   String travelTime, int priceRange) {
         this.id = id;
         this.lat = lat;
         this.lng = lng;
@@ -47,14 +51,14 @@ public class Place implements Parcelable {
         this.priceRange = priceRange;
     }
 
-    protected Place(Parcel in) {
+    protected MyPlace(Parcel in) {
         id = in.readString();
         lat = in.readDouble();
         lng = in.readDouble();
         name = in.readString();
         address = in.readString();
         rating = in.readDouble();
-        travelTime = in.readInt();
+        travelTime = in.readString();
         priceRange = in.readInt();
     }
 
@@ -82,12 +86,32 @@ public class Place implements Parcelable {
         return rating;
     }
 
-    public int getTravelTime() {
+    public String getTravelTime() {
         return travelTime;
+    }
+
+    public void setTravelTime(String travelTime) {
+        this.travelTime = travelTime;
     }
 
     public int getPriceRange() {
         return priceRange;
+    }
+
+    public String[] getImageUrls() {
+        return imageUrls;
+    }
+
+    public void setImageUrls(String[] imageUrls) {
+        this.imageUrls = imageUrls;
+    }
+
+    public Tip[] getTips() {
+        return tips;
+    }
+
+    public void setTips(Tip[] tips) {
+        this.tips = tips;
     }
 
     @Override
@@ -103,7 +127,7 @@ public class Place implements Parcelable {
         parcel.writeString(name);
         parcel.writeString(address);
         parcel.writeDouble(rating);
-        parcel.writeInt(travelTime);
+        parcel.writeString(travelTime);
         parcel.writeInt(priceRange);
     }
 }

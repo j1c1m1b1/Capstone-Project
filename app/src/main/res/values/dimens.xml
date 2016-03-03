@@ -17,7 +17,7 @@
     <!--OnBoarding-->
     <dimen name="indicator_size">8dp</dimen>
 
-    <!--Place-->
+    <!--MyPlace-->
     <dimen name="expanded_title_margin_bottom">64dp</dimen>
     <dimen name="byline_margin_start">24dp</dimen>
     <dimen name="byline_margin_bottom">24dp</dimen>
