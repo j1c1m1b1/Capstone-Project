@@ -41,6 +41,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.jcmb.shakemeup.R;
@@ -48,9 +49,9 @@ import com.jcmb.shakemeup.adapters.VenuePhotosAdapter;
 import com.jcmb.shakemeup.connection.Requests;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
 import com.jcmb.shakemeup.interfaces.OnVenuesRequestCompleteListener;
-import com.jcmb.shakemeup.loaders.FavoritePlacesLoader;
 import com.jcmb.shakemeup.loaders.PlacePhotoLoader;
 import com.jcmb.shakemeup.loaders.QueryLoader;
+import com.jcmb.shakemeup.loaders.TransactionPlacesLoader;
 import com.jcmb.shakemeup.places.MyPlace;
 import com.jcmb.shakemeup.places.Parser;
 import com.jcmb.shakemeup.places.Tip;
@@ -224,6 +225,7 @@ public class PlaceActivity extends ShakeActivity
         if(intent != null && intent.hasExtra(PLACE_ID))
         {
             placeId = intent.getStringExtra(PLACE_ID);
+            Log.d(TAG, placeId);
             pickupLat = intent.getDoubleExtra(PICKUP_LATITUDE, -1.0d);
             pickupLng = intent.getDoubleExtra(PICKUP_LONGITUDE, -1.0d);
             pickupAddress = intent.getStringExtra(PICKUP_ADDRESS);
@@ -313,8 +315,6 @@ public class PlaceActivity extends ShakeActivity
                         places.release();
                     }
                 });
-
-        getSupportLoaderManager().initLoader(PLACE_PHOTO_LOADER_ID, null, this).forceLoad();
     }
 
     private void bindPlace() {
@@ -346,6 +346,8 @@ public class PlaceActivity extends ShakeActivity
         if (myPlace.getTips() != null) {
             bindTips();
         }
+
+        getSupportLoaderManager().initLoader(PLACE_PHOTO_LOADER_ID, null, this).forceLoad();
     }
 
     private void initializeShareIntent(double lat, double lng) {
@@ -389,8 +391,8 @@ public class PlaceActivity extends ShakeActivity
             btnFavorite.setEnabled(false);
         }
 
-        int transaction = isFavorite ? FavoritePlacesLoader.DELETE :
-                FavoritePlacesLoader.INSERT;
+        int transaction = isFavorite ? TransactionPlacesLoader.DELETE :
+                TransactionPlacesLoader.INSERT;
 
         Bundle args = new Bundle();
         args.putInt(TRANSACTION, transaction);
@@ -411,7 +413,9 @@ public class PlaceActivity extends ShakeActivity
     private void setupMap(final LatLng latLng) {
         if(googleMap != null)
         {
-            googleMap.addMarker(new MarkerOptions().position(latLng));
+            Bitmap bitmap = Utils.getBitmap(R.drawable.vector_drawable_marker, this);
+            googleMap.addMarker(new MarkerOptions().position(latLng)
+                    .icon(BitmapDescriptorFactory.fromBitmap(bitmap)));
             googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17f));
         }
         else
@@ -580,10 +584,15 @@ public class PlaceActivity extends ShakeActivity
 
                             Bitmap bitmap = placePhotoResult.getBitmap();
                             ivPlace.setImageBitmap(bitmap);
+                            Log.d(TAG, "Succeeded");
+                        } else {
+                            Log.e(TAG, "Failed");
                         }
                     }
                 };
                 photoLoader.initialize(apiClient, placeId, photoResultCallback);
+
+                photoLoader.forceLoad();
 
                 return photoLoader;
 
@@ -593,7 +602,7 @@ public class PlaceActivity extends ShakeActivity
 
             case TRANSACTION_LOADER_ID:
                 int transaction = args.getInt(TRANSACTION);
-                return new FavoritePlacesLoader(this, transaction, myPlace, imageUrls, tips);
+                return new TransactionPlacesLoader(this, transaction, myPlace, imageUrls, tips);
 
             default:
                 return null;

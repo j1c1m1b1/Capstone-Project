@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.content.AsyncTaskLoader;
+import android.util.Log;
 
 import com.jcmb.shakemeup.data.ShakeMeUpContract;
 import com.jcmb.shakemeup.places.MyPlace;
@@ -30,6 +31,8 @@ public class QueryLoader extends AsyncTaskLoader<Object> {
                 .appendQueryParameter(ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID, "" + myPlace.getId())
                 .build();
 
+        Log.d(this.getClass().getSimpleName(), uri.toString());
+
         String[] projection = new String[]{ShakeMeUpContract.PlaceImage.COLUMN_IMAGE_URL};
         Cursor cursor = contentResolver.query(uri, projection, null, null, null);
         if (cursor != null && cursor.moveToFirst()) {
@@ -52,7 +55,7 @@ public class QueryLoader extends AsyncTaskLoader<Object> {
         ContentResolver contentResolver = getContext().getContentResolver();
         Uri uri = ShakeMeUpContract.Tip.CONTENT_URI
                 .buildUpon()
-                .appendQueryParameter(ShakeMeUpContract.Tip.COLUMN_PLACE_ID, "" + myPlace.getId())
+                .appendQueryParameter(ShakeMeUpContract.Tip.COLUMN_PLACE_ID, myPlace.getId())
                 .build();
 
         String[] projection = new String[]{ShakeMeUpContract.Tip.COLUMN_IMAGE_URL,
@@ -84,12 +87,16 @@ public class QueryLoader extends AsyncTaskLoader<Object> {
         MyPlace myPlace = null;
 
         Uri uri = ShakeMeUpContract.FavoritePlace.CONTENT_URI.buildUpon()
-                .appendPath("" + placeId)
+                .appendPath(placeId)
                 .build();
+
+        Log.d(this.getClass().getSimpleName(), uri.toString());
 
         Cursor cursor = getContext().getContentResolver().query(uri, null, null, null, null);
 
+
         if (cursor != null && cursor.moveToFirst()) {
+
             /*
             ShakeMeUpContract.FavoritePlace.COLUMN_PLACE_ID,
                         ShakeMeUpContract.FavoritePlace.COLUMN_NAME,

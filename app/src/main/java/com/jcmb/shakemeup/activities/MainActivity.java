@@ -321,8 +321,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                         switch (status) {
                             case Requests.SERVICE_STATUS_SUCCESS:
                                 myPlaces = Parser.getPlaces(jsonResponse);
-                                if (myPlaces != null) {
+                                if (myPlaces != null && myPlaces.length != 0) {
                                     putMarkers();
+                                } else {
+                                    showErrorDialog(R.string.error_corrupted_data);
                                 }
                                 break;
                             case Requests.SERVICE_STATUS_DOWN:

@@ -16,19 +16,19 @@ import com.jcmb.shakemeup.places.Tip;
 /**
  * @author Julio Mendoza on 3/2/16.
  */
-public class FavoritePlacesLoader extends AsyncTaskLoader<Object> {
+public class TransactionPlacesLoader extends AsyncTaskLoader<Object> {
 
     public static final int INSERT = 1;
 
     public static final int DELETE = 2;
-    private static final String TAG = FavoritePlacesLoader.class.getSimpleName();
+    private static final String TAG = TransactionPlacesLoader.class.getSimpleName();
     private final MyPlace myPlace;
     private final String[] imageUrls;
     private final Tip[] tips;
     private int transaction;
 
-    public FavoritePlacesLoader(Context context, int transaction, MyPlace myPlace,
-                                String[] imageUrls, Tip[] tips) {
+    public TransactionPlacesLoader(Context context, int transaction, MyPlace myPlace,
+                                   String[] imageUrls, Tip[] tips) {
         super(context);
         this.transaction = transaction;
         this.myPlace = myPlace;
@@ -42,9 +42,11 @@ public class FavoritePlacesLoader extends AsyncTaskLoader<Object> {
         try {
             ContentResolver contentResolver = getContext().getContentResolver();
 
-            Uri uri = ShakeMeUpContract.FavoritePlace.CONTENT_URI.buildUpon()
-                    .appendPath("" + myPlace.getId())
+            Uri uri = ShakeMeUpContract.FavoritePlace.CONTENT_URI
+                    .buildUpon()
+                    .appendPath(myPlace.getId())
                     .build();
+
             Cursor cursor = contentResolver.query(uri, null, null, null, null);
 
             ContentValues values = new ContentValues();
@@ -69,40 +71,53 @@ public class FavoritePlacesLoader extends AsyncTaskLoader<Object> {
                         values);
 
                 if (placeUri != null) {
+
                     String path = placeUri.getPath();
 
-                    int placeId = Integer.parseInt(path.substring(path.lastIndexOf('/') + 1));
+                    int id = Integer.parseInt(path.substring(path.lastIndexOf('/') + 1));
 
-                    ContentValues[] valuesArray;
+                    uri = ShakeMeUpContract.FavoritePlace.CONTENT_URI.buildUpon()
+                            .appendPath("" + id)
+                            .build();
+                    cursor = contentResolver.query(uri, null, null, null, null);
 
-                    if (imageUrls != null && imageUrls.length > 0) {
-                        valuesArray = new ContentValues[imageUrls.length];
-                        String imageUrl;
-                        for (int i = 0; i < valuesArray.length; i++) {
-                            imageUrl = imageUrls[i];
-                            values.clear();
+                    if (cursor != null && cursor.moveToFirst()) {
 
-                            values.put(ShakeMeUpContract.PlaceImage.COLUMN_IMAGE_URL, imageUrl);
-                            values.put(ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID, placeId);
+                        String placeId = cursor.getString(1);
 
-                            valuesArray[i] = values;
+                        cursor.close();
+                        ContentValues[] valuesArray;
+
+                        if (imageUrls != null && imageUrls.length > 0) {
+                            valuesArray = new ContentValues[imageUrls.length];
+                            String imageUrl;
+                            for (int i = 0; i < valuesArray.length; i++) {
+                                imageUrl = imageUrls[i];
+                                values.clear();
+
+                                values.put(ShakeMeUpContract.PlaceImage.COLUMN_IMAGE_URL, imageUrl);
+                                values.put(ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID, placeId);
+
+                                valuesArray[i] = values;
+                            }
+
+                            contentResolver.bulkInsert(ShakeMeUpContract.PlaceImage.CONTENT_URI,
+                                    valuesArray);
                         }
 
-                        contentResolver.bulkInsert(ShakeMeUpContract.PlaceImage.CONTENT_URI,
-                                valuesArray);
-
-                    }
-
-                    if (tips != null && tips.length > 0) {
-                        valuesArray = new ContentValues[tips.length];
-                        Tip tip;
-                        for (int i = 0; i < valuesArray.length; i++) {
-                            tip = tips[i];
-                            values = tip.toValues(myPlace.getId());
-                            valuesArray[i] = values;
+                        if (tips != null && tips.length > 0) {
+                            valuesArray = new ContentValues[tips.length];
+                            Tip tip;
+                            for (int i = 0; i < valuesArray.length; i++) {
+                                tip = tips[i];
+                                values = tip.toValues(placeId);
+                                valuesArray[i] = values;
+                            }
+                            contentResolver.bulkInsert(ShakeMeUpContract.Tip.CONTENT_URI,
+                                    valuesArray);
                         }
-                        contentResolver.bulkInsert(ShakeMeUpContract.Tip.CONTENT_URI, valuesArray);
                     }
+
 
                 }
             }

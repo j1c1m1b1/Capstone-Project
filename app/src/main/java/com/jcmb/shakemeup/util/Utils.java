@@ -21,7 +21,10 @@ public class Utils {
     private static final double EARTH_RADIUS = 6371;
 
     public static MyPlace[] convertParcelableToPlaces(Parcelable[] parcelableArray) {
-        return Arrays.copyOf(parcelableArray, parcelableArray.length, MyPlace[].class);
+        if (parcelableArray != null) {
+            return Arrays.copyOf(parcelableArray, parcelableArray.length, MyPlace[].class);
+        }
+        return null;
     }
 
     /**
@@ -57,7 +60,10 @@ public class Utils {
     }
 
     public static Tip[] convertParcelableToTips(Parcelable[] parcelableArray) {
-        return Arrays.copyOf(parcelableArray, parcelableArray.length, Tip[].class);
+        if (parcelableArray != null) {
+            return Arrays.copyOf(parcelableArray, parcelableArray.length, Tip[].class);
+        }
+        return null;
     }
 
 

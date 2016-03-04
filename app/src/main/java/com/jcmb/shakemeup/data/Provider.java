@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 /**
  * @author Julio Mendoza on 3/1/16.
@@ -24,11 +25,11 @@ public class Provider extends ContentProvider {
 
     private static final int PLACE_IMAGES = 200;
 
-    private static final int IMAGES_BY_MOVIE = 201;
+    private static final int IMAGES_BY_PLACE = 201;
 
     private static final int TIPS = 300;
 
-    private static final int TIPS_BY_MOVIE = 301;
+    private static final int TIPS_BY_PLACE = 301;
 
     private UriMatcher matcher = buildUriMatcher();
 
@@ -39,17 +40,14 @@ public class Provider extends ContentProvider {
 
         final String authority = ShakeMeUpContract.CONTENT_AUTHORITY;
 
-        matcher.addURI(authority, ShakeMeUpContract.PLACES_PATH, PLACES);
-        matcher.addURI(authority, ShakeMeUpContract.PLACES_PATH + "/#", PLACE_BY_ID);
         matcher.addURI(authority, ShakeMeUpContract.PLACES_PATH + "/*", PLACE_BY_PLACE_ID);
 
+        matcher.addURI(authority, ShakeMeUpContract.PLACES_PATH, PLACES);
+        matcher.addURI(authority, ShakeMeUpContract.PLACES_PATH + "/#", PLACE_BY_ID);
+
         matcher.addURI(authority, ShakeMeUpContract.PLACE_IMAGES_PATH, PLACE_IMAGES);
-        matcher.addURI(authority, ShakeMeUpContract.PLACE_IMAGES_PATH + "?"
-                + ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID + "=#", IMAGES_BY_MOVIE);
 
         matcher.addURI(authority, ShakeMeUpContract.TIPS_PATH, TIPS);
-        matcher.addURI(authority, ShakeMeUpContract.TIPS_PATH + "?"
-                + ShakeMeUpContract.Tip.COLUMN_PLACE_ID + "=#", TIPS_BY_MOVIE);
         return matcher;
     }
 
@@ -78,25 +76,35 @@ public class Provider extends ContentProvider {
     }
 
     private Cursor getPlaceByPlaceId(Uri uri) {
+
         String path = uri.getPath();
 
         String placeId = path.substring(path.lastIndexOf('/') + 1);
 
-        String selection = ShakeMeUpContract.FavoritePlace.COLUMN_PLACE_ID + " = ?";
-
+        String selection;
         String[] selectionArgs = new String[]{placeId};
+        String[] columns = null;
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            Integer.parseInt(placeId);
+            selection = ShakeMeUpContract.FavoritePlace._ID + " = ?";
+        } catch (NumberFormatException e) {
+            Log.e(this.getClass().getSimpleName(), "" + e.getMessage());
 
-        String[] columns = new String[]
-                {
-                        ShakeMeUpContract.FavoritePlace.COLUMN_PLACE_ID,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_NAME,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_ADDRESS,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_RATING,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_PRICE_RANGE,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_TRAVEL_TIME,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_LAT,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_LNG
-                };
+            selection = ShakeMeUpContract.FavoritePlace.COLUMN_PLACE_ID + " LIKE ?";
+
+            columns = new String[]
+                    {
+                            ShakeMeUpContract.FavoritePlace.COLUMN_PLACE_ID,
+                            ShakeMeUpContract.FavoritePlace.COLUMN_NAME,
+                            ShakeMeUpContract.FavoritePlace.COLUMN_ADDRESS,
+                            ShakeMeUpContract.FavoritePlace.COLUMN_RATING,
+                            ShakeMeUpContract.FavoritePlace.COLUMN_PRICE_RANGE,
+                            ShakeMeUpContract.FavoritePlace.COLUMN_TRAVEL_TIME,
+                            ShakeMeUpContract.FavoritePlace.COLUMN_LAT,
+                            ShakeMeUpContract.FavoritePlace.COLUMN_LNG
+                    };
+        }
 
         SQLiteDatabase db = helper.getReadableDatabase();
         return db.query(ShakeMeUpContract.FavoritePlace.TABLE_NAME, columns, selection, selectionArgs,
@@ -106,7 +114,7 @@ public class Provider extends ContentProvider {
     private Cursor getPlaceImages(Uri uri, String[] projection) {
         String placeId = uri.getQueryParameter(ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID);
 
-        String selection = ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID + " = ?";
+        String selection = ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID + " LIKE ?";
 
         String[] selectionArgs = new String[]{placeId};
         SQLiteDatabase db = helper.getReadableDatabase();
@@ -116,11 +124,11 @@ public class Provider extends ContentProvider {
     }
 
     private Cursor getTips(Uri uri, String[] projection) {
-        String movieId = uri.getQueryParameter(ShakeMeUpContract.Tip.COLUMN_PLACE_ID);
+        String placeId = uri.getQueryParameter(ShakeMeUpContract.Tip.COLUMN_PLACE_ID);
 
-        String selection = ShakeMeUpContract.Tip.COLUMN_PLACE_ID + " = ?";
+        String selection = ShakeMeUpContract.Tip.COLUMN_PLACE_ID + " LIKE ?";
 
-        String[] selectionArgs = new String[]{movieId};
+        String[] selectionArgs = new String[]{placeId};
         SQLiteDatabase db = helper.getReadableDatabase();
 
         return db.query(ShakeMeUpContract.Tip.TABLE_NAME,
@@ -177,6 +185,9 @@ public class Provider extends ContentProvider {
                 contentType = ShakeMeUpContract.FavoritePlace.CONTENT_TYPE;
                 break;
             case PLACE_BY_ID:
+                contentType = ShakeMeUpContract.FavoritePlace.CONTENT_ITEM_TYPE;
+                break;
+            case PLACE_BY_PLACE_ID:
                 contentType = ShakeMeUpContract.FavoritePlace.CONTENT_ITEM_TYPE;
                 break;
             case PLACE_IMAGES:

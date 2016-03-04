@@ -76,7 +76,7 @@ public class Requests {
     public static void searchPlacesNearby(Location location, Context context,
                                           OnRequestCompleteListener listener)
     {
-        String latLng = String.format(Locale.getDefault(), LAT_LNG_FORMAT_SPACED,
+        String latLng = String.format(Locale.US, LAT_LNG_FORMAT_SPACED,
                 location.getLatitude(), location.getLongitude());
 
         String apiKey = context.getString(R.string.places_server_api_key);
@@ -92,7 +92,7 @@ public class Requests {
 
     public static void getAddressByLatLong(double lat, double lng, OnRequestCompleteListener listener)
     {
-        String latLng = String.format(Locale.getDefault(), LAT_LNG_FORMAT, lat, lng);
+        String latLng = String.format(Locale.US, LAT_LNG_FORMAT, lat, lng);
 
         HttpUrl url = parseUrl(GM_HOST, ADDRESS_PATH, new String[]{PARAM_LAT_LNG},
                 new String[]{latLng});
@@ -104,10 +104,10 @@ public class Requests {
                                            double destinationLng, Context context,
                                            OnRequestCompleteListener listener)
     {
-        String originLatLng = String.format(Locale.getDefault(), LAT_LNG_FORMAT, originLat,
+        String originLatLng = String.format(Locale.US, LAT_LNG_FORMAT, originLat,
                 originLng);
 
-        String destinationLatLng = String.format(Locale.getDefault(),
+        String destinationLatLng = String.format(Locale.US,
                 LAT_LNG_FORMAT, destinationLat, destinationLng);
 
         String apiKey = context.getString(R.string.places_server_api_key);
@@ -124,11 +124,11 @@ public class Requests {
     public static void getFoursquareVenuesAt(double lat, double lng, String name, String clientId,
                                              String clientSecret, OnVenuesRequestCompleteListener listener)
     {
-        String latLng = String.format(Locale.getDefault(), LAT_LNG_FORMAT, lat, lng);
+        String latLng = String.format(Locale.US, LAT_LNG_FORMAT, lat, lng);
 
         Date date = new Date();
 
-        DateFormat format = new SimpleDateFormat(V_DATE_FORMAT, Locale.getDefault());
+        DateFormat format = new SimpleDateFormat(V_DATE_FORMAT, Locale.US);
 
         String dateValue = format.format(date);
 
@@ -148,7 +148,7 @@ public class Requests {
     {
         Date date = new Date();
 
-        DateFormat format = new SimpleDateFormat(V_DATE_FORMAT, Locale.getDefault());
+        DateFormat format = new SimpleDateFormat(V_DATE_FORMAT, Locale.US);
 
         String dateValue = format.format(date);
 
