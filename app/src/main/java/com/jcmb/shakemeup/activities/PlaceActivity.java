@@ -16,6 +16,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
+import android.support.v7.widget.AppCompatRatingBar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.ShareActionProvider;
@@ -28,8 +29,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.google.android.gms.common.api.ResultCallback;
@@ -69,6 +68,8 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import fr.castorflex.android.circularprogressbar.CircularProgressBar;
+
 public class PlaceActivity extends ShakeActivity
         implements LoaderCallbacks<Object>, OnMapReadyCallback {
 
@@ -91,7 +92,7 @@ public class PlaceActivity extends ShakeActivity
 
     private ImageView ivPlace;
 
-    private RatingBar rbPlace;
+    private AppCompatRatingBar rbPlace;
 
     private TextView tvByline;
 
@@ -103,7 +104,7 @@ public class PlaceActivity extends ShakeActivity
 
     private GoogleMap googleMap;
 
-    private ProgressBar pbLoading;
+    private CircularProgressBar pbLoading;
 
     private LinearLayout layoutVenue;
 
@@ -184,7 +185,7 @@ public class PlaceActivity extends ShakeActivity
 
         rqButton = (RequestButton)findViewById(R.id.rqButton);
 
-        rbPlace = (RatingBar)findViewById(R.id.rbPlace);
+        rbPlace = (AppCompatRatingBar) findViewById(R.id.rbPlace);
 
         tvByline = (TextView)findViewById(R.id.tvByline);
 
@@ -192,7 +193,7 @@ public class PlaceActivity extends ShakeActivity
 
         tvDuration = (TextView)findViewById(R.id.tvDistance);
 
-        pbLoading = (ProgressBar)findViewById(R.id.pbLoading);
+        pbLoading = (CircularProgressBar) findViewById(R.id.pbLoading);
 
         layoutVenue = (LinearLayout)findViewById(R.id.layoutVenue);
 
@@ -340,10 +341,12 @@ public class PlaceActivity extends ShakeActivity
 
         if (myPlace.getImageUrls() != null) {
             layoutVenue.setVisibility(View.VISIBLE);
+            imageUrls = myPlace.getImageUrls();
             bindImageUrls();
         }
 
         if (myPlace.getTips() != null) {
+            tips = myPlace.getTips();
             bindTips();
         }
 
@@ -537,9 +540,10 @@ public class PlaceActivity extends ShakeActivity
 
     private void bindTips()
     {
-        LinearLayout layoutTips = (LinearLayout) findViewById(R.id.layoutTips);
-        if (tips != null && tips.length > 0 && layoutTips.getVisibility() == View.VISIBLE)
+        if (tips != null && tips.length > 0)
         {
+            LinearLayout layoutTips = (LinearLayout) findViewById(R.id.layoutTips);
+            layoutTips.setVisibility(View.VISIBLE);
             TipView viewItemTip;
             Tip tip;
 
@@ -554,7 +558,8 @@ public class PlaceActivity extends ShakeActivity
     }
 
     private void bindImageUrls() {
-        VenuePhotosAdapter venuePhotosAdapter = new VenuePhotosAdapter(imageUrls);
+        VenuePhotosAdapter venuePhotosAdapter = new VenuePhotosAdapter(imageUrls, this);
+        rvPhotos.setVisibility(View.VISIBLE);
         rvPhotos.setAdapter(venuePhotosAdapter);
     }
 

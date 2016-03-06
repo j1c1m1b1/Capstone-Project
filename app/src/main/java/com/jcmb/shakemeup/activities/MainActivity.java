@@ -20,7 +20,6 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
@@ -38,7 +37,6 @@ import com.jcmb.shakemeup.connection.Requests;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
 import com.jcmb.shakemeup.places.MyPlace;
 import com.jcmb.shakemeup.places.Parser;
-import com.jcmb.shakemeup.util.MaterialProgressDrawable;
 import com.jcmb.shakemeup.util.Utils;
 
 import org.json.JSONObject;
@@ -105,13 +103,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        @SuppressLint("InflateParams")
-        View view = getLayoutInflater().inflate(R.layout.dialog_progress, null);
-
-        ImageView ivProgress = (ImageView) view.findViewById(R.id.ivProgress);
-        ivProgress.setBackground(new MaterialProgressDrawable(this, view));
-
-        builder.setView(view);
+        builder.setView(R.layout.dialog_progress);
 
         loadingDialog = builder.create();
         loadingDialog.setCancelable(false);

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:layout_width="@dimen/venue_photo_size"
+    android:layout_height="@dimen/venue_photo_size"
     android:orientation="vertical" android:padding="@dimen/button_padding">
 
     <ImageView

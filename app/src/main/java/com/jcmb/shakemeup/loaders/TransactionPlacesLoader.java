@@ -1,10 +1,13 @@
 package com.jcmb.shakemeup.loaders;
 
+import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.RemoteException;
 import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
 
@@ -12,6 +15,8 @@ import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.data.ShakeMeUpContract;
 import com.jcmb.shakemeup.places.MyPlace;
 import com.jcmb.shakemeup.places.Tip;
+
+import java.util.ArrayList;
 
 /**
  * @author Julio Mendoza on 3/2/16.
@@ -65,7 +70,15 @@ public class TransactionPlacesLoader extends AsyncTaskLoader<Object> {
                 cursor.close();
                 contentResolver.update(ShakeMeUpContract.FavoritePlace.CONTENT_URI,
                         values,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_PLACE_ID + " = ?", new String[]{myPlace.getId()});
+                        ShakeMeUpContract.FavoritePlace.COLUMN_PLACE_ID + " = ?",
+                        new String[]{myPlace.getId()});
+
+                try {
+                    updateUrlsAndTips(contentResolver);
+                } catch (RemoteException | OperationApplicationException e) {
+                    Log.e(TAG, "" + e.getMessage());
+                }
+
             } else {
                 Uri placeUri = contentResolver.insert(ShakeMeUpContract.FavoritePlace.CONTENT_URI,
                         values);
@@ -82,43 +95,11 @@ public class TransactionPlacesLoader extends AsyncTaskLoader<Object> {
                     cursor = contentResolver.query(uri, null, null, null, null);
 
                     if (cursor != null && cursor.moveToFirst()) {
-
                         String placeId = cursor.getString(1);
-
                         cursor.close();
-                        ContentValues[] valuesArray;
 
-                        if (imageUrls != null && imageUrls.length > 0) {
-                            valuesArray = new ContentValues[imageUrls.length];
-                            String imageUrl;
-                            for (int i = 0; i < valuesArray.length; i++) {
-                                imageUrl = imageUrls[i];
-                                values.clear();
-
-                                values.put(ShakeMeUpContract.PlaceImage.COLUMN_IMAGE_URL, imageUrl);
-                                values.put(ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID, placeId);
-
-                                valuesArray[i] = values;
-                            }
-
-                            contentResolver.bulkInsert(ShakeMeUpContract.PlaceImage.CONTENT_URI,
-                                    valuesArray);
-                        }
-
-                        if (tips != null && tips.length > 0) {
-                            valuesArray = new ContentValues[tips.length];
-                            Tip tip;
-                            for (int i = 0; i < valuesArray.length; i++) {
-                                tip = tips[i];
-                                values = tip.toValues(placeId);
-                                valuesArray[i] = values;
-                            }
-                            contentResolver.bulkInsert(ShakeMeUpContract.Tip.CONTENT_URI,
-                                    valuesArray);
-                        }
+                        insertUrlsAndTips(placeId, values, contentResolver);
                     }
-
-
                 }
             }
 
@@ -128,6 +109,83 @@ public class TransactionPlacesLoader extends AsyncTaskLoader<Object> {
         }
 
         return message;
+    }
+
+    public void insertUrlsAndTips(String placeId, ContentValues values, ContentResolver contentResolver) {
+        ContentValues[] valuesArray;
+        int insertedRows;
+
+        if (imageUrls != null && imageUrls.length > 0) {
+            valuesArray = new ContentValues[imageUrls.length];
+            String imageUrl;
+            for (int i = 0; i < valuesArray.length; i++) {
+                imageUrl = imageUrls[i];
+                values.clear();
+
+                values.put(ShakeMeUpContract.PlaceImage.COLUMN_IMAGE_URL, imageUrl);
+                values.put(ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID, placeId);
+
+                valuesArray[i] = values;
+            }
+
+            insertedRows = contentResolver.bulkInsert(ShakeMeUpContract.PlaceImage.CONTENT_URI,
+                    valuesArray);
+            Log.d(TAG, "Inserted rows: " + insertedRows);
+        }
+
+        if (tips != null && tips.length > 0) {
+            valuesArray = new ContentValues[tips.length];
+            Tip tip;
+            for (int i = 0; i < valuesArray.length; i++) {
+                tip = tips[i];
+                values = tip.toValues(placeId);
+                valuesArray[i] = values;
+            }
+            insertedRows = contentResolver.bulkInsert(ShakeMeUpContract.Tip.CONTENT_URI,
+                    valuesArray);
+
+            Log.d(TAG, "Inserted rows: " + insertedRows);
+        }
+    }
+
+    public void updateUrlsAndTips(ContentResolver contentResolver) throws RemoteException,
+            OperationApplicationException {
+        ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+
+        String selection;
+        String[] selectionArgs = new String[]{myPlace.getId()};
+
+        if (imageUrls != null && imageUrls.length > 0) {
+            selection = ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID + " = ?";
+            ContentProviderOperation operation;
+            for (String imageUrl : imageUrls) {
+                operation = ContentProviderOperation
+                        .newUpdate(ShakeMeUpContract.PlaceImage.CONTENT_URI)
+                        .withValue(ShakeMeUpContract.PlaceImage.COLUMN_IMAGE_URL, imageUrl)
+                        .withSelection(selection, selectionArgs)
+                        .build();
+
+                ops.add(operation);
+
+            }
+            contentResolver.applyBatch(ShakeMeUpContract.CONTENT_AUTHORITY, ops);
+        }
+
+        if (tips != null && tips.length > 0) {
+            selection = ShakeMeUpContract.Tip.COLUMN_PLACE_ID + " = ?";
+            ContentProviderOperation operation;
+            for (Tip tip : tips) {
+                operation = ContentProviderOperation
+                        .newUpdate(ShakeMeUpContract.Tip.CONTENT_URI)
+                        .withValue(ShakeMeUpContract.Tip.COLUMN_BODY, tip.getText())
+                        .withValue(ShakeMeUpContract.Tip.COLUMN_IMAGE_URL, tip.getUserPhotoUrl())
+                        .withValue(ShakeMeUpContract.Tip.COLUMN_USER_NAME, tip.getUserName())
+                        .withSelection(selection, selectionArgs)
+                        .build();
+                ops.add(operation);
+            }
+            contentResolver.applyBatch(ShakeMeUpContract.CONTENT_AUTHORITY, ops);
+        }
     }
 
     public String removePlace() {

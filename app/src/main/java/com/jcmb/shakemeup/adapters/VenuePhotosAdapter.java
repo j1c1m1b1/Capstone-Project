@@ -19,16 +19,13 @@ public class VenuePhotosAdapter extends RecyclerView.Adapter<VenuePhotosAdapter.
 
     private Context context;
 
-    public VenuePhotosAdapter(String[] photoUrls) {
+    public VenuePhotosAdapter(String[] photoUrls, Context context) {
         this.photoUrls = photoUrls;
+        this.context = context;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if(context == null)
-        {
-            context = parent.getContext();
-        }
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.view_item_photo, parent, false);
         return new ViewHolder(view);
@@ -57,7 +54,8 @@ public class VenuePhotosAdapter extends RecyclerView.Adapter<VenuePhotosAdapter.
         public void bind(String imageUrl, Context context)
         {
             ImageView ivPhoto = (ImageView)view.findViewById(R.id.ivPhoto);
-            Glide.with(context).load(imageUrl).placeholder(R.drawable.default_placeholder).into(ivPhoto);
+            Glide.with(context).load(imageUrl)
+                    .placeholder(R.drawable.default_placeholder).into(ivPhoto);
         }
     }
 }

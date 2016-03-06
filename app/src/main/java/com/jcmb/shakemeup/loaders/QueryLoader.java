@@ -28,7 +28,7 @@ public class QueryLoader extends AsyncTaskLoader<Object> {
         ContentResolver contentResolver = getContext().getContentResolver();
         Uri uri = ShakeMeUpContract.PlaceImage.CONTENT_URI
                 .buildUpon()
-                .appendQueryParameter(ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID, "" + myPlace.getId())
+                .appendQueryParameter(ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID, myPlace.getId())
                 .build();
 
         Log.d(this.getClass().getSimpleName(), uri.toString());

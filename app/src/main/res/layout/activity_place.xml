@@ -61,7 +61,7 @@
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:textColor="@color/white"/>
 
-                <RatingBar
+                <android.support.v7.widget.AppCompatRatingBar
                     android:id="@+id/rbPlace"
                     style="?android:attr/ratingBarStyleSmall"
                     android:layout_width="wrap_content"

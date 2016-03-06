@@ -262,6 +262,14 @@ public class Provider extends ContentProvider {
                 rowsAffected = db.update(ShakeMeUpContract.FavoritePlace.TABLE_NAME, values,
                         selection, selectionArgs);
                 break;
+            case TIPS:
+                rowsAffected = db.update(ShakeMeUpContract.Tip.TABLE_NAME, values,
+                        selection, selectionArgs);
+                break;
+            case PLACE_IMAGES:
+                rowsAffected = db.update(ShakeMeUpContract.PlaceImage.TABLE_NAME, values,
+                        selection, selectionArgs);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown URI " + uri);
         }
