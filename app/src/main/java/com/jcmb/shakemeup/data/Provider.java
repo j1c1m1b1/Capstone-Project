@@ -25,11 +25,7 @@ public class Provider extends ContentProvider {
 
     private static final int PLACE_IMAGES = 200;
 
-    private static final int IMAGES_BY_PLACE = 201;
-
     private static final int TIPS = 300;
-
-    private static final int TIPS_BY_PLACE = 301;
 
     private UriMatcher matcher = buildUriMatcher();
 

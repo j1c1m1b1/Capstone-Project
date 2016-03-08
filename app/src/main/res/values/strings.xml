@@ -69,7 +69,7 @@
     <string name="no_favorites">You haven\'t added favorites yet</string>
     <string name="error_transaction">There was an error modifying favorites</string>
     <string name="favorite_places">Your favorite venues</string>
-    <string name="map_intent_uri_format">geo:%1$f,%2$f?q=%3$f,%4$f</string>
+    <string name="map_intent_uri_format">http://maps.google.com/maps?daddr=%1$f,%2$f</string>
 
     <!--Content Provider-->
     <string name="authority" translatable="false">com.jcmb.shakemeup.provider</string>
@@ -79,6 +79,8 @@
     <string name="uber_client_id" translatable="false">2Js3Bb3d5f5MMSz0–8iRCP7pRyBiRduC</string>
     <string name="foursquare_client_id">JDMFQCP200BPJXX30YF2AIN4WJKWNQPLDTRY4CN01SZPXUAF</string>
     <string name="foursquare_client_secret">KGX30YDQZHBG1XJ5011UPJ4Q5FHVIXDLSQMYJJHYYDENNVAZ</string>
+    <string name="got_it">We\'ve got your loaction!</string>
+    <string name="press_button">Press the button to explore nearby venues</string>
 
 
 </resources>

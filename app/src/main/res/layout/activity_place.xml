@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".activities.MainActivity">
+    tools:context=".activities.PlaceActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
@@ -19,6 +19,7 @@
             android:id="@+id/toolbar_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@drawable/tile_restaurant_back"
             android:fitsSystemWindows="true"
             app:contentScrim="?attr/colorPrimary"
             app:expandedTitleMarginBottom="@dimen/expanded_title_margin_bottom"
@@ -28,6 +29,7 @@
                 android:id="@+id/ivPlace"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:alpha="0.0"
                 android:contentDescription="@string/app_name"
                 android:scaleType="centerCrop"
                 app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed"/>

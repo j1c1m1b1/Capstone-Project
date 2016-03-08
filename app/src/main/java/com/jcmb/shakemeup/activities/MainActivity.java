@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
 import android.support.annotation.StyleRes;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -49,7 +50,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     private static final float DEFAULT_ZOOM = 14f;
 
     private static final String PLACES = "myPlaces";
-    private static final String FIRST = "first";
+    private static final String CURRENT_LOCATION = "current_location";
     private TextSwitcher tsActionTitle;
 
     private TextSwitcher tsActionDesc;
@@ -66,6 +67,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private AlertDialog loadingDialog;
 
+    private FloatingActionButton btnPlaces;
+
     private boolean first = true;
 
     @Override
@@ -73,7 +76,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
             myPlaces = Utils.convertParcelableToPlaces(savedInstanceState.getParcelableArray(PLACES));
-            first = savedInstanceState.getBoolean(FIRST);
+            currentLocation = savedInstanceState.getParcelable(CURRENT_LOCATION);
         }
         initUI();
         super.create();
@@ -104,6 +107,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         builder.setView(R.layout.dialog_progress);
+
+        btnPlaces = (FloatingActionButton) findViewById(R.id.btnPlaces);
 
         loadingDialog = builder.create();
         loadingDialog.setCancelable(false);
@@ -158,7 +163,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     @Override
     public void onLocationChanged(Location location) {
         super.onLocationChanged(location);
-        Log.d(TAG, "Location changed!");
         updateUiAfterLocation();
     }
 
@@ -166,7 +170,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArray(PLACES, myPlaces);
-        outState.putBoolean(FIRST, first);
+        outState.putParcelable(CURRENT_LOCATION, currentLocation);
     }
 
     private void updateUiAfterLocation()
@@ -174,28 +178,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         if(currentLocation != null && googleMap != null)
         {
             if (first) {
-                animateMap();
-                first = false;
+                animateMapLayout();
             }
 
             if (shouldUpdateMap) {
-                LatLng latLng = new LatLng(currentLocation.getLatitude(),
-                        currentLocation.getLongitude());
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
-                if (myPlaces != null) {
-                    putMarkers();
-                } else {
-                    getPlaces();
-                }
+                updateMap();
             }
         }
-
-        tsActionTitle.setText(getString(R.string.shake_me));
-        tsActionDesc.setText(getString(R.string.shake_me_desc));
-
     }
 
-    private void animateMap()
+    private void animateMapLayout()
     {
         layoutContent.animate()
                 .alpha(0f)
@@ -223,7 +215,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 })
                 .start();
 
-
         layoutMap.animate()
                 .alpha(1f)
                 .setDuration(getResources().getInteger(R.integer.default_anim_duration))
@@ -249,9 +240,40 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     }
                 })
                 .start();
+
+        if (isAccelerometerPresent) {
+            tsActionTitle.setText(getString(R.string.shake_me));
+            tsActionDesc.setText(getString(R.string.shake_me_desc));
+        } else {
+            tsActionTitle.setText(getString(R.string.got_it));
+            tsActionDesc.setText(getString(R.string.press_button));
+            btnPlaces.setVisibility(View.VISIBLE);
+            btnPlaces.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    goToPlace();
+                }
+            });
+        }
+        updateMarkers();
+        first = false;
+    }
+
+    private void updateMap() {
+        LatLng latLng = new LatLng(currentLocation.getLatitude(),
+                currentLocation.getLongitude());
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+        updateMarkers();
     }
 
 
+    private void updateMarkers() {
+        if (myPlaces != null) {
+            putMarkers();
+        } else {
+            getPlaces();
+        }
+    }
 
 
     private void initTextSwitcher(TextSwitcher textSwitcher, @StyleRes final int styleRes,
@@ -337,14 +359,15 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     private void putMarkers() {
+        final Bitmap bitmap = Utils.getBitmap(R.drawable.vector_drawable_marker,
+                MainActivity.this);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 googleMap.clear();
                 LatLng latLng;
                 String name;
-                Bitmap bitmap = Utils.getBitmap(R.drawable.vector_drawable_marker,
-                        MainActivity.this);
+
                 MarkerOptions options;
                 for (MyPlace myPlace : myPlaces) {
                     latLng = new LatLng(myPlace.getLat(), myPlace.getLng());
@@ -367,8 +390,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     @Override
     protected void goToPlace() {
-        super.goToPlace();
-        if (myPlaces != null) {
+        if (myPlaces != null && currentLocation != null) {
+            super.goToPlace();
             ArrayList<String> placeIDs = new ArrayList<>();
 
             for (MyPlace myPlace : myPlaces) {
@@ -424,7 +447,5 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 builder.show();
             }
         });
-
-
     }
 }

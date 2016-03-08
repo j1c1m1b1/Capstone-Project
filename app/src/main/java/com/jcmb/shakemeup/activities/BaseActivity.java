@@ -54,6 +54,7 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
     protected static final String TAG = BaseActivity.class.getSimpleName();
     private static final int LOCATION_PERMS_REQUEST_CODE = 100;
     private static final int REQUEST_CHECK_SETTINGS = 200;
+    private static final int API_CLIENT_RESOLUTION_REQUEST = 300;
     protected GoogleApiClient apiClient;
 
     protected LocationRequest locationRequest;
@@ -62,10 +63,11 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
 
     protected String currentAddress;
     protected boolean shouldUpdateMap;
+    protected boolean isAccelerometerPresent;
     private ShakeDetector shakeDetector;
     private SensorManager sensorManager;
     private Sensor accelerometer;
-    private boolean enabled;
+    private boolean accelerometerEnabled;
     private TimerTask task;
 
     protected void setNavigationBarColor() {
@@ -177,10 +179,8 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
                     addApi(LocationServices.API)
                     .build();
 
-            apiClient.connect();
-
-            createLocationSettingsRequest();
         }
+        apiClient.connect();
     }
 
     /**
@@ -230,7 +230,6 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-//        final LocationSettingsStates states = LocationSettingsStates.fromIntent(data);
         switch (requestCode) {
             case REQUEST_CHECK_SETTINGS:
                 switch (resultCode) {
@@ -246,6 +245,11 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
                         break;
                 }
                 break;
+            case API_CLIENT_RESOLUTION_REQUEST:
+                if (resultCode == Activity.RESULT_OK && apiClient != null) {
+                    apiClient.connect();
+                }
+                break;
         }
     }
 
@@ -254,17 +258,18 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager
                 .getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        shakeDetector = new ShakeDetector();
-        shakeDetector.setOnShakeListener(new ShakeDetector.OnShakeListener() {
+        if (isAccelerometerPresent = accelerometer != null) {
+            shakeDetector = new ShakeDetector();
+            shakeDetector.setOnShakeListener(new ShakeDetector.OnShakeListener() {
 
-            @Override
-            public void onShake(int count) {
-                if(enabled)
-                {
-                    goToPlace();
+                @Override
+                public void onShake(int count) {
+                    if (accelerometerEnabled && count > 1) {
+                        goToPlace();
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     @Override
@@ -275,19 +280,27 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
             apiClient.connect();
         }
 
-        task = new TimerTask() {
-            @Override
-            public void run() {
-                enabled = true;
-            }
-        };
-        Timer timer = new Timer();
-        timer.schedule(task, 700);
+        if (isAccelerometerPresent) {
+            task = new TimerTask() {
+                @Override
+                public void run() {
+                    accelerometerEnabled = true;
+                }
+            };
+            Timer timer = new Timer();
+            timer.schedule(task, 700);
+        } else {
+            accelerometerEnabled = true;
+        }
+
     }
 
     @Override
     protected void onStop() {
-        task.cancel();
+        if (isAccelerometerPresent) {
+            task.cancel();
+        }
+
         if(apiClient != null)
         {
             apiClient.disconnect();
@@ -314,6 +327,7 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        createLocationSettingsRequest();
     }
 
     @Override
@@ -355,9 +369,13 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.i(this.getClass().getSimpleName(),
-                "Connection failed: ConnectionResult.getErrorCode() = "
-                        + connectionResult.getErrorCode());
+        Log.i(TAG, "Connection failed: " + connectionResult.getErrorCode());
+
+        try {
+            connectionResult.startResolutionForResult(this, API_CLIENT_RESOLUTION_REQUEST);
+        } catch (IntentSender.SendIntentException e) {
+            e.printStackTrace();
+        }
     }
 
     private void requestLocationUpdates()

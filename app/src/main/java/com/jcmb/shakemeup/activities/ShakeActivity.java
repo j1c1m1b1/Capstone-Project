@@ -28,11 +28,13 @@ import java.util.TimerTask;
 public class ShakeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
+    private static final String TAG = ShakeActivity.class.getSimpleName();
     protected GoogleApiClient apiClient;
+    protected boolean isAccelerometerPresent;
     private ShakeDetector shakeDetector;
     private SensorManager sensorManager;
     private Sensor accelerometer;
-    private boolean enabled;
+    private boolean accelerometerEnabled;
     private TimerTask task;
 
     @Override
@@ -52,16 +54,19 @@ public class ShakeActivity extends AppCompatActivity implements GoogleApiClient.
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager
                 .getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        shakeDetector = new ShakeDetector();
-        shakeDetector.setOnShakeListener(new ShakeDetector.OnShakeListener() {
 
-            @Override
-            public void onShake(int count) {
-                if (enabled) {
-                    goToPlace();
+        if (isAccelerometerPresent = accelerometer != null) {
+            shakeDetector = new ShakeDetector();
+            shakeDetector.setOnShakeListener(new ShakeDetector.OnShakeListener() {
+
+                @Override
+                public void onShake(int count) {
+                    if (accelerometerEnabled && count > 1) {
+                        goToPlace();
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     private void startApiClient() {
@@ -87,7 +92,7 @@ public class ShakeActivity extends AppCompatActivity implements GoogleApiClient.
         task = new TimerTask() {
             @Override
             public void run() {
-                enabled = true;
+                accelerometerEnabled = true;
             }
         };
         Timer timer = new Timer();
@@ -126,8 +131,7 @@ public class ShakeActivity extends AppCompatActivity implements GoogleApiClient.
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.i(this.getClass().getSimpleName(),
-                "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
+        Log.i(TAG, "Connection failed: " + connectionResult.getErrorCode());
     }
 
     protected void goToPlace() {
