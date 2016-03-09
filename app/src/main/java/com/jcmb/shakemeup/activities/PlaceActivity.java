@@ -1,6 +1,8 @@
 package com.jcmb.shakemeup.activities;
 
+import android.app.LoaderManager;
 import android.content.Intent;
+import android.content.Loader;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -11,9 +13,7 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.Loader;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.AppCompatRatingBar;
@@ -72,7 +72,7 @@ import java.util.TimerTask;
 import fr.castorflex.android.circularprogressbar.CircularProgressBar;
 
 public class PlaceActivity extends ShakeActivity
-        implements LoaderCallbacks<Object>, OnMapReadyCallback {
+        implements LoaderManager.LoaderCallbacks<Object>, OnMapReadyCallback {
 
     public static final String PLACE_ID = "place_id";
     public static final String PICKUP_LATITUDE = "pickup_lat";
@@ -149,6 +149,7 @@ public class PlaceActivity extends ShakeActivity
 
         restoreState(savedInstanceState);
         initUI();
+        this.getLoaderManager();
 
         if (myPlace == null) {
             Intent intent = getIntent();
@@ -219,6 +220,13 @@ public class PlaceActivity extends ShakeActivity
 
     }
 
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        getLoaderManager().destroyLoader(PLACE_PHOTO_LOADER_ID);
+    }
+
     private void getIntentInfo(Intent intent)
     {
         if(intent != null && intent.hasExtra(PLACE_ID))
@@ -233,7 +241,7 @@ public class PlaceActivity extends ShakeActivity
 
             if (myPlace == null) {
                 //Check if it is favorite
-                getSupportLoaderManager().initLoader(QUERY_LOADER_ID, null, this).forceLoad();
+                getLoaderManager().initLoader(QUERY_LOADER_ID, null, this).forceLoad();
             } else {
                 bindPlace();
             }
@@ -255,8 +263,11 @@ public class PlaceActivity extends ShakeActivity
             tips = Utils.convertParcelableToTips(savedInstanceState.getParcelableArray(TIPS));
             imageUrls = savedInstanceState.getStringArray(IMAGE_URLS);
 
-            myPlace.setImageUrls(imageUrls);
-            myPlace.setTips(tips);
+            if (myPlace != null) {
+                myPlace.setImageUrls(imageUrls);
+                myPlace.setTips(tips);
+            }
+
         }
     }
 
@@ -286,6 +297,7 @@ public class PlaceActivity extends ShakeActivity
         if (!isFavorite && !loading && myPlace == null) {
             getPlace();
         }
+        getLoaderManager().restartLoader(PLACE_PHOTO_LOADER_ID, null, this);
     }
 
     private void getPlace()
@@ -359,9 +371,8 @@ public class PlaceActivity extends ShakeActivity
                 myPlace.getName(), myPlace.getAddress());
 
         updateFavoriteButton();
-
-        getSupportLoaderManager().initLoader(PLACE_PHOTO_LOADER_ID, null, this);
     }
+
 
     private void initializeShareIntent(double lat, double lng) {
         String format = getString(R.string.map_intent_uri_format);
@@ -376,7 +387,7 @@ public class PlaceActivity extends ShakeActivity
     private void switchFavorite(String message) {
         isFavorite = !isFavorite;
 
-        getSupportLoaderManager().destroyLoader(TRANSACTION_LOADER_ID);
+        getLoaderManager().destroyLoader(TRANSACTION_LOADER_ID);
 
         updateFavoriteButton();
 
@@ -406,7 +417,7 @@ public class PlaceActivity extends ShakeActivity
         Bundle args = new Bundle();
         args.putInt(TRANSACTION, transaction);
 
-        getSupportLoaderManager().initLoader(TRANSACTION_LOADER_ID, args, this).forceLoad();
+        getLoaderManager().initLoader(TRANSACTION_LOADER_ID, args, this).forceLoad();
     }
 
     private void updateFavoriteButton() {
@@ -599,6 +610,7 @@ public class PlaceActivity extends ShakeActivity
                     Log.d(TAG, "Image Load Success");
 
                     Bitmap bitmap = placePhotoResult.getBitmap();
+
                     ivPlace.setImageBitmap(bitmap);
 
                     ivPlace.animate()
@@ -663,7 +675,7 @@ public class PlaceActivity extends ShakeActivity
 
     @Override
     public void onLoaderReset(Loader loader) {
-
+        getLoaderManager().destroyLoader(PLACE_PHOTO_LOADER_ID);
     }
 
     private String parsePriceRange(int priceLevel) {

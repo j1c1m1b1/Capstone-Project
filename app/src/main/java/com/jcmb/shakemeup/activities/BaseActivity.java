@@ -86,13 +86,11 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
     {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    || ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    || ActivityCompat.checkSelfPermission(this,Manifest.permission.VIBRATE) != PackageManager.PERMISSION_GRANTED)
+                    || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
             {
 
                 if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                        || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                        || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.VIBRATE))
+                        || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION))
                 {
                     showExplanationDialog();
                 }
@@ -100,8 +98,7 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
                 {
                     ActivityCompat.requestPermissions(this,
                             new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                                    Manifest.permission.VIBRATE},
+                                    Manifest.permission.ACCESS_COARSE_LOCATION},
                             LOCATION_PERMS_REQUEST_CODE);
                 }
             }
@@ -110,6 +107,7 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
                 initServices();
                 onPermissionsAccepted();
             }
+
         } else {
             initServices();
             onPermissionsAccepted();
@@ -137,9 +135,13 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
     protected void onPermissionsAccepted(){}
 
     private void showExplanationDialog() {
+
+        int titleResId = R.string.location_perms_title;
+        int messageResId = R.string.location_perms_message;
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.location_perms_title)
-                .setMessage(R.string.location_perms_message);
+        builder.setTitle(titleResId)
+                .setMessage(messageResId);
 
         builder.setPositiveButton(R.string.request_perms, new DialogInterface.OnClickListener() {
             @Override
@@ -148,6 +150,7 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
                                 Manifest.permission.ACCESS_COARSE_LOCATION},
                         LOCATION_PERMS_REQUEST_CODE);
+
             }
         });
 

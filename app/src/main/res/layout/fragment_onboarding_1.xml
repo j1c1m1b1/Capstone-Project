@@ -10,6 +10,7 @@
         android:layout_width="@dimen/image_preferred_size"
         android:layout_height="@dimen/image_preferred_size"
         android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/inner_padding_double"
         android:background="@drawable/location_circle">
 
         <ImageView

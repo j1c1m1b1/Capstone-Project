@@ -1,8 +1,7 @@
 package com.jcmb.shakemeup.loaders;
 
+import android.content.AsyncTaskLoader;
 import android.content.Context;
-import android.support.v4.content.AsyncTaskLoader;
-import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -51,7 +50,6 @@ public class PlacePhotoLoader extends AsyncTaskLoader<Object> {
 
         if(apiClient != null && apiClient.isConnected())
         {
-            Log.d(this.getClass().getSimpleName(), "Place ID: " + placeId);
             PlacePhotoMetadataResult result = Places.GeoDataApi
                     .getPlacePhotos(apiClient, placeId).await();
 
@@ -65,7 +63,6 @@ public class PlacePhotoLoader extends AsyncTaskLoader<Object> {
                     if(photo != null)
                     {
                         photo.getPhoto(apiClient).setResultCallback(photoResultCallback);
-//                CharSequence attribution = photo.getAttributions();
                     }
                 }
 
