@@ -241,20 +241,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 })
                 .start();
 
-        if (isAccelerometerPresent) {
-            tsActionTitle.setText(getString(R.string.shake_me));
-            tsActionDesc.setText(getString(R.string.shake_me_desc));
-        } else {
-            tsActionTitle.setText(getString(R.string.got_it));
-            tsActionDesc.setText(getString(R.string.press_button));
-            btnPlaces.setVisibility(View.VISIBLE);
-            btnPlaces.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    goToPlace();
-                }
-            });
-        }
+        tsActionTitle.setText(getString(R.string.loading_places));
+        tsActionDesc.setText(getString(R.string.loading_places_desc));
+
         updateMarkers();
         first = false;
     }
@@ -336,6 +325,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                             case Requests.SERVICE_STATUS_SUCCESS:
                                 myPlaces = Parser.getPlaces(jsonResponse);
                                 if (myPlaces != null && myPlaces.length != 0) {
+
                                     putMarkers();
                                 } else {
                                     showErrorDialog(R.string.error_corrupted_data);
@@ -364,6 +354,21 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if (isAccelerometerPresent) {
+                    tsActionTitle.setText(getString(R.string.shake_me));
+                    tsActionDesc.setText(getString(R.string.shake_me_desc));
+                } else {
+                    tsActionTitle.setText(getString(R.string.got_it));
+                    tsActionDesc.setText(getString(R.string.press_button));
+                    btnPlaces.setVisibility(View.VISIBLE);
+                    btnPlaces.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            goToPlace();
+                        }
+                    });
+                }
+
                 googleMap.clear();
                 LatLng latLng;
                 String name;

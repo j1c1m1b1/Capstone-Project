@@ -9,6 +9,7 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.jcmb.shakemeup.R;
+import com.jcmb.shakemeup.interfaces.OnItemClickedListener;
 
 /**
  * @author Julio Mendoza on 1/20/16.
@@ -19,9 +20,12 @@ public class VenuePhotosAdapter extends RecyclerView.Adapter<VenuePhotosAdapter.
 
     private Context context;
 
-    public VenuePhotosAdapter(String[] photoUrls, Context context) {
+    private OnItemClickedListener listener;
+
+    public VenuePhotosAdapter(String[] photoUrls, Context context, OnItemClickedListener listener) {
         this.photoUrls = photoUrls;
         this.context = context;
+        this.listener = listener;
     }
 
     @Override
@@ -51,11 +55,17 @@ public class VenuePhotosAdapter extends RecyclerView.Adapter<VenuePhotosAdapter.
             this.view = view;
         }
 
-        public void bind(String imageUrl, Context context)
+        public void bind(final String imageUrl, Context context)
         {
-            ImageView ivPhoto = (ImageView)view.findViewById(R.id.ivPhoto);
+            final ImageView ivPhoto = (ImageView) view.findViewById(R.id.ivPhoto);
             Glide.with(context).load(imageUrl)
                     .placeholder(R.drawable.default_placeholder).into(ivPhoto);
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    listener.onClick(ivPhoto, imageUrl);
+                }
+            });
         }
     }
 }

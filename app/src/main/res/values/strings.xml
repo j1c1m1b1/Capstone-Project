@@ -40,6 +40,7 @@
     <string name="shake_me">Start Shaking!</string>
     <string name="shake_me_desc">Shake me to fetch a random restaurant</string>
     <string name="loading_places">Obtaining venues…</string>
+    <string name="loading_places_desc">The server is working</string>
     <string name="error_title">Sorry!</string>
     <string name="error_server_down">The server appear to be down.\nTry again later</string>
     <string name="error_corrupted_data">The information appears to be wrong.\nTry again later</string>

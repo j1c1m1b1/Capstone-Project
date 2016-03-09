@@ -2,4 +2,12 @@
 <resources>
     <dimen name="image_preferred_size">480dp</dimen>
     <dimen name="image_preferred_size_half">240dp</dimen>
+    <dimen name="place_layout_margin">80dp</dimen>
+    <dimen name="app_bar_height">240dp</dimen>
+    <dimen name="app_bar_margin">208dp</dimen>
+    <dimen name="place_elevation">16dp</dimen>
+    <dimen name="photo_carousel_height">160dp</dimen>
+    <dimen name="venue_photo_size">160dp</dimen>
+    <dimen name="fab_margin_end">96dp</dimen>
+    <dimen name="expanded_image_view_size">320dp</dimen>
 </resources>

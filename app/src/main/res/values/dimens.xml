@@ -28,6 +28,7 @@
     <dimen name="image_preferred_size_quarter">60dp</dimen>
     <dimen name="venue_photo_size">256dp</dimen>
     <dimen name="uber_button_margin_bottom">40dp</dimen>
+    <dimen name="expanded_image_view_size">320dp</dimen>
 
     <!--Progress Dialog-->
     <dimen name="progress_dialog_size">48dp</dimen>

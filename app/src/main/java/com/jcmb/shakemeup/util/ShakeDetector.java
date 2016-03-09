@@ -33,9 +33,9 @@ public class ShakeDetector implements SensorEventListener{
             float y = event.values[1];
             float z = event.values[2];
 
-            float gX = x / SensorManager.GRAVITY_EARTH;
-            float gY = y / SensorManager.GRAVITY_EARTH;
-            float gZ = z / SensorManager.GRAVITY_EARTH;
+            float gX = Math.abs(x / SensorManager.GRAVITY_EARTH);
+            float gY = Math.abs(y / SensorManager.GRAVITY_EARTH);
+            float gZ = Math.abs(z / SensorManager.GRAVITY_EARTH);
 
             // gForce will be close to 1 when there is no movement.
             float gForce = (float) Math.sqrt(gX * gX + gY * gY + gZ * gZ);

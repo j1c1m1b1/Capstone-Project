@@ -19,9 +19,6 @@ import com.google.android.gms.location.places.Places;
 import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.util.ShakeDetector;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 /**
  * @author Julio Mendoza on 3/2/16.
  */
@@ -34,8 +31,6 @@ public class ShakeActivity extends AppCompatActivity implements GoogleApiClient.
     private ShakeDetector shakeDetector;
     private SensorManager sensorManager;
     private Sensor accelerometer;
-    private boolean accelerometerEnabled;
-    private TimerTask task;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,7 +56,7 @@ public class ShakeActivity extends AppCompatActivity implements GoogleApiClient.
 
                 @Override
                 public void onShake(int count) {
-                    if (accelerometerEnabled && count > 1) {
+                    if (count > 1) {
                         goToPlace();
                     }
                 }
@@ -89,19 +84,10 @@ public class ShakeActivity extends AppCompatActivity implements GoogleApiClient.
             apiClient.connect();
         }
 
-        task = new TimerTask() {
-            @Override
-            public void run() {
-                accelerometerEnabled = true;
-            }
-        };
-        Timer timer = new Timer();
-        timer.schedule(task, 700);
     }
 
     @Override
     protected void onStop() {
-        task.cancel();
         if (apiClient != null) {
             apiClient.disconnect();
         }

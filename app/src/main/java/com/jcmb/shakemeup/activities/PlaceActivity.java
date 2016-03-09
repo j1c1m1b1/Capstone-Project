@@ -1,5 +1,6 @@
 package com.jcmb.shakemeup.activities;
 
+import android.animation.Animator;
 import android.app.LoaderManager;
 import android.content.Intent;
 import android.content.Loader;
@@ -28,6 +29,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -47,6 +49,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.adapters.VenuePhotosAdapter;
 import com.jcmb.shakemeup.connection.Requests;
+import com.jcmb.shakemeup.interfaces.OnItemClickedListener;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
 import com.jcmb.shakemeup.interfaces.OnVenuesRequestCompleteListener;
 import com.jcmb.shakemeup.loaders.PlacePhotoLoader;
@@ -72,7 +75,7 @@ import java.util.TimerTask;
 import fr.castorflex.android.circularprogressbar.CircularProgressBar;
 
 public class PlaceActivity extends ShakeActivity
-        implements LoaderManager.LoaderCallbacks<Object>, OnMapReadyCallback {
+        implements LoaderManager.LoaderCallbacks<Object>, OnMapReadyCallback, OnItemClickedListener {
 
     public static final String PLACE_ID = "place_id";
     public static final String PICKUP_LATITUDE = "pickup_lat";
@@ -137,6 +140,12 @@ public class PlaceActivity extends ShakeActivity
 
     private Tip[] tips;
 
+    private ImageView ivExpanded;
+
+    private Animator animator;
+
+    private int animationDuration;
+
     private boolean loading;
 
     private boolean menuIsVisible;
@@ -150,6 +159,8 @@ public class PlaceActivity extends ShakeActivity
         restoreState(savedInstanceState);
         initUI();
         this.getLoaderManager();
+
+        animationDuration = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
         if (myPlace == null) {
             Intent intent = getIntent();
@@ -206,6 +217,8 @@ public class PlaceActivity extends ShakeActivity
                 startTransactionLoader();
             }
         });
+
+        ivExpanded = (ImageView) findViewById(R.id.ivExpanded);
 
         rvPhotos = (RecyclerView)findViewById(R.id.rvPhotos);
         RecyclerView.LayoutManager manager = new LinearLayoutManager(this,
@@ -355,7 +368,6 @@ public class PlaceActivity extends ShakeActivity
         pbLoading.setVisibility(View.GONE);
 
         if (myPlace.getImageUrls() != null) {
-            layoutVenue.setVisibility(View.VISIBLE);
             imageUrls = myPlace.getImageUrls();
             bindImageUrls();
         }
@@ -372,7 +384,6 @@ public class PlaceActivity extends ShakeActivity
 
         updateFavoriteButton();
     }
-
 
     private void initializeShareIntent(double lat, double lng) {
         String format = getString(R.string.map_intent_uri_format);
@@ -557,8 +568,6 @@ public class PlaceActivity extends ShakeActivity
         bindImageUrls();
 
         pbLoading.setVisibility(View.GONE);
-        layoutVenue.setVisibility(View.VISIBLE);
-
     }
 
     private void bindTips()
@@ -576,15 +585,28 @@ public class PlaceActivity extends ShakeActivity
                 viewItemTip.bind(tip);
             }
 
-            layoutTips.setVisibility(View.VISIBLE);
+            expandFoursquareLayout(layoutTips);
+        }
+    }
+
+    private void expandFoursquareLayout(LinearLayout layoutTips) {
+
+        FrameLayout layoutFoursquare = (FrameLayout) findViewById(R.id.layoutFoursquare);
+        layoutTips.setVisibility(View.VISIBLE);
+        if (layoutFoursquare != null) {
+            layoutVenue.setVisibility(View.VISIBLE);
+            Utils.expandHorizontal(layoutFoursquare);
+
+        } else {
+            Utils.expand(layoutVenue);
         }
     }
 
     private void bindImageUrls() {
         if (imageUrls != null && imageUrls.length > 0) {
-            VenuePhotosAdapter venuePhotosAdapter = new VenuePhotosAdapter(imageUrls, this);
-            rvPhotos.setVisibility(View.VISIBLE);
+            VenuePhotosAdapter venuePhotosAdapter = new VenuePhotosAdapter(imageUrls, this, this);
             rvPhotos.setAdapter(venuePhotosAdapter);
+            Utils.expand(rvPhotos);
         }
     }
 
@@ -756,5 +778,13 @@ public class PlaceActivity extends ShakeActivity
                 finish();
             }
         }
+    }
+
+    @Override
+    public void onClick(ImageView ivPhoto, String imageUrl) {
+        Utils utils = Utils.getInstance();
+
+        utils.zoomImageFromThumb(ivPhoto, ivExpanded, rootView, this, imageUrl,
+                animator, animationDuration);
     }
 }

@@ -3,4 +3,8 @@
     <dimen name="image_preferred_size">480dp</dimen>
     <dimen name="image_preferred_size_half">360dp</dimen>
     <dimen name="image_preferred_size_quarter">240dp</dimen>
+    <dimen name="app_bar_height">240dp</dimen>
+    <dimen name="app_bar_margin">208dp</dimen>
+    <dimen name="photo_carousel_height">80dp</dimen>
+    <dimen name="venue_photo_size">80dp</dimen>
 </resources>
