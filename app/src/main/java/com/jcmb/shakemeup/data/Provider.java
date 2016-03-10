@@ -98,7 +98,8 @@ public class Provider extends ContentProvider {
                             ShakeMeUpContract.FavoritePlace.COLUMN_PRICE_RANGE,
                             ShakeMeUpContract.FavoritePlace.COLUMN_TRAVEL_TIME,
                             ShakeMeUpContract.FavoritePlace.COLUMN_LAT,
-                            ShakeMeUpContract.FavoritePlace.COLUMN_LNG
+                            ShakeMeUpContract.FavoritePlace.COLUMN_LNG,
+                            ShakeMeUpContract.FavoritePlace.COLUMN_4SQ_URL
                     };
         }
 

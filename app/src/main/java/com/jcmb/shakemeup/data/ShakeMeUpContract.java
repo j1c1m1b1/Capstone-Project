@@ -54,6 +54,8 @@ public final class ShakeMeUpContract {
 
         public static final String COLUMN_LNG = "lng";
 
+        public static final String COLUMN_4SQ_URL = "foursquare_url";
+
         public static Uri buildPlaceUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }

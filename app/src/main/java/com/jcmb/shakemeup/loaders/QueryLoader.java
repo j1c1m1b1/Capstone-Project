@@ -116,8 +116,9 @@ public class QueryLoader extends AsyncTaskLoader<Object> {
             String travelTime = cursor.getString(5);
             double lat = cursor.getDouble(6);
             double lng = cursor.getDouble(7);
+            String foursquareUrl = cursor.getString(8);
 
-            myPlace = new MyPlace(placeId, lat, lng, name, address, rating, travelTime, priceRange);
+            myPlace = new MyPlace(placeId, lat, lng, name, address, rating, travelTime, priceRange, foursquareUrl);
 
             cursor.close();
         }

@@ -5,6 +5,7 @@
     android:id="@+id/rootView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/tile_restaurant_back_white"
     android:fitsSystemWindows="true"
     tools:context=".activities.FavoritePlacesActivity">
 
@@ -18,10 +19,12 @@
             android:layout_width="match_parent"
             android:layout_height="?android:attr/actionBarSize"
             android:background="?attr/colorPrimary"
+            android:elevation="@dimen/default_bar_elevation"
             android:theme="@style/AppTheme.NoActionBar.AppBarOverlay"
             app:elevation="@dimen/default_bar_elevation"
             app:popupTheme="@style/AppTheme.NoActionBar.PopupOverlay"
-            app:title="@string/app_name" />
+            app:title="@string/app_name"
+            tools:ignore="UnusedAttribute" />
 
         <FrameLayout
             android:layout_width="match_parent"

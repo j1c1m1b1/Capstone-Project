@@ -65,6 +65,7 @@ public class TransactionPlacesLoader extends AsyncTaskLoader<Object> {
             values.put(ShakeMeUpContract.FavoritePlace.COLUMN_PRICE_RANGE, myPlace.getPriceRange());
             values.put(ShakeMeUpContract.FavoritePlace.COLUMN_TRAVEL_TIME, myPlace.getTravelTime());
             values.put(ShakeMeUpContract.FavoritePlace.COLUMN_RATING, myPlace.getRating());
+            values.put(ShakeMeUpContract.FavoritePlace.COLUMN_4SQ_URL, myPlace.getFoursquareUrl());
 
             if (cursor != null && cursor.moveToFirst()) {
                 cursor.close();
@@ -98,7 +99,7 @@ public class TransactionPlacesLoader extends AsyncTaskLoader<Object> {
                         String placeId = cursor.getString(1);
                         cursor.close();
 
-                        insertUrlsAndTips(placeId, values, contentResolver);
+                        insertUrlsAndTips(placeId, contentResolver);
                     }
                 }
             }
@@ -111,19 +112,19 @@ public class TransactionPlacesLoader extends AsyncTaskLoader<Object> {
         return message;
     }
 
-    public void insertUrlsAndTips(String placeId, ContentValues values, ContentResolver contentResolver) {
+    public void insertUrlsAndTips(String placeId, ContentResolver contentResolver) {
         ContentValues[] valuesArray;
         int insertedRows;
+        ContentValues values;
 
         if (imageUrls != null && imageUrls.length > 0) {
             valuesArray = new ContentValues[imageUrls.length];
             String imageUrl;
             for (int i = 0; i < valuesArray.length; i++) {
                 imageUrl = imageUrls[i];
-
+                values = new ContentValues();
                 values.put(ShakeMeUpContract.PlaceImage.COLUMN_IMAGE_URL, imageUrl);
                 values.put(ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID, placeId);
-
                 valuesArray[i] = values;
             }
 

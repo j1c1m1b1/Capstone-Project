@@ -186,7 +186,7 @@ public class PlaceActivity extends ShakeActivity
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null)
         {
-            actionBar.setDisplayShowTitleEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
         rootView = (CoordinatorLayout) findViewById(R.id.rootView);
@@ -332,7 +332,7 @@ public class PlaceActivity extends ShakeActivity
 
                             myPlace = new MyPlace(placeId, lat, lng, place.getName().toString(),
                                     place.getAddress().toString(), place.getRating(),
-                                    "", place.getPriceLevel());
+                                    "", place.getPriceLevel(), null);
 
                             bindPlace();
 
@@ -551,16 +551,8 @@ public class PlaceActivity extends ShakeActivity
 
     private void refreshVenueUI(Venue venue)
     {
-        TextView tvBusinessInfo = (TextView)findViewById(R.id.tvBusinessInfo);
         final String venueUrl = venue.getFoursquareUrl();
-        tvBusinessInfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(venueUrl));
-                startActivity(intent);
-            }
-        });
+        myPlace.setFoursquareUrl(venueUrl);
 
         tips = new Tip[venue.getTips().size()];
         venue.getTips().toArray(tips);
@@ -576,8 +568,20 @@ public class PlaceActivity extends ShakeActivity
 
     private void bindTips()
     {
+        TextView tvBusinessInfo = (TextView) findViewById(R.id.tvBusinessInfo);
+        tvBusinessInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(myPlace.getFoursquareUrl()));
+                startActivity(intent);
+            }
+        });
+
         if (tips != null && tips.length > 0)
         {
+
+
             LinearLayout layoutTips = (LinearLayout) findViewById(R.id.layoutTips);
             layoutTips.setVisibility(View.VISIBLE);
             TipView viewItemTip;
@@ -780,6 +784,13 @@ public class PlaceActivity extends ShakeActivity
                 intent.putExtra(PlaceActivity.PLACE_IDS, placeIDs);
                 startActivity(intent);
                 finish();
+            }
+        } else {
+            Snackbar snackbar = Snackbar.make(rootView, R.string.no_more_places,
+                    Snackbar.LENGTH_LONG);
+
+            if (!snackbar.isShownOrQueued()) {
+                snackbar.show();
             }
         }
     }

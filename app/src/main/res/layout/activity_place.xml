@@ -12,8 +12,10 @@
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/app_bar_height"
+        android:elevation="@dimen/default_bar_elevation"
         android:fitsSystemWindows="true"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:elevation="@dimen/default_bar_elevation">
 
         <android.support.design.widget.CollapsingToolbarLayout
             android:id="@+id/toolbar_layout"
@@ -32,6 +34,7 @@
                 android:alpha="0.0"
                 android:contentDescription="@string/app_name"
                 android:scaleType="centerCrop"
+                app:layout_collapseMode="parallax"
                 app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed"/>
 
             <View

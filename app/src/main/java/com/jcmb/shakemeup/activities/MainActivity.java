@@ -7,17 +7,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
 import android.support.annotation.StyleRes;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.TextViewCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.Gravity;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -52,6 +51,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private static final String PLACES = "myPlaces";
     private static final String CURRENT_LOCATION = "current_location";
+    private static final String CURRENT_ADDRESS = "current_address";
     private TextSwitcher tsActionTitle;
 
     private TextSwitcher tsActionDesc;
@@ -68,11 +68,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private AlertDialog loadingDialog;
 
-    private CardView cardAddress;
+    private LinearLayout layoutAddress;
 
     private TextView tvAddress;
-
-    private FloatingActionButton btnFavorites;
 
     private FloatingActionButton btnPlaces;
 
@@ -84,6 +82,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         if (savedInstanceState != null) {
             myPlaces = Utils.convertParcelableToPlaces(savedInstanceState.getParcelableArray(PLACES));
             currentLocation = savedInstanceState.getParcelable(CURRENT_LOCATION);
+            currentAddress = savedInstanceState.getString(CURRENT_ADDRESS);
         }
         initUI();
         super.create();
@@ -117,11 +116,19 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
         btnPlaces = (FloatingActionButton) findViewById(R.id.btnPlaces);
 
-        cardAddress = (CardView) findViewById(R.id.cardAddress);
+        layoutAddress = (LinearLayout) findViewById(R.id.layoutAddress);
 
         tvAddress = (TextView) findViewById(R.id.tvAddress);
 
-        btnFavorites = (FloatingActionButton) findViewById(R.id.btnFavorites);
+        FloatingActionButton btnFavorites = (FloatingActionButton) findViewById(R.id.btnFavorites);
+
+        btnFavorites.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, FavoritePlacesActivity.class);
+                startActivity(intent);
+            }
+        });
 
         loadingDialog = builder.create();
         loadingDialog.setCancelable(false);
@@ -131,29 +138,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
     protected void onPermissionsAccepted() {
         super.onPermissionsAccepted();
         mapFragment.getMapAsync(this);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            Intent intent = new Intent(this, FavoritePlacesActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -184,6 +168,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         super.onSaveInstanceState(outState);
         outState.putParcelableArray(PLACES, myPlaces);
         outState.putParcelable(CURRENT_LOCATION, currentLocation);
+        outState.putString(CURRENT_ADDRESS, currentAddress);
     }
 
     private void updateUiAfterLocation()
@@ -295,20 +280,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
                 TextView textView = new TextView(context);
                 int color;
-                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                {
-                    textView.setTextAppearance(styleRes);
-                    color = getColor(R.color.colorPrimary);
-                }
-                else
-                {
-                    //noinspection deprecation
-                    textView.setTextAppearance(context, styleRes);
-                    //noinspection deprecation
-                    color = getResources().getColor(R.color.colorPrimary);
-                }
+
+                TextViewCompat.setTextAppearance(textView, styleRes);
+                color = ContextCompat.getColor(MainActivity.this, R.color.colorPrimary);
+
                 textView.setTextColor(color);
                 textView.setText(stringRes);
+                textView.setGravity(Gravity.CENTER);
                 return textView;
             }
         });
@@ -321,6 +299,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         //noinspection MissingPermission
         googleMap.setMyLocationEnabled(true);
 
+        int paddingTop = getResources().getDimensionPixelOffset(R.dimen.map_margin_end);
+
+        googleMap.setPadding(0, paddingTop, 0, 0);
         this.googleMap = googleMap;
     }
 
@@ -382,6 +363,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                     });
                 }
 
+                currentAddress =
+                        currentAddress == null ? getString(R.string.no_address) : currentAddress;
+                animateAddressLayout();
+
                 googleMap.clear();
                 LatLng latLng;
                 String name;
@@ -436,6 +421,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
                 }
             }
         }
+    }
+
+    private void animateAddressLayout() {
+        tvAddress.setText(currentAddress);
+        Utils.expandHorizontal(layoutAddress);
     }
 
     public void showLoadingDialog() {

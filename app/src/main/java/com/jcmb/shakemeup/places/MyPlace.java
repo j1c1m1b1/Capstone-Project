@@ -19,8 +19,8 @@ public class MyPlace implements Parcelable {
             return new MyPlace[size];
         }
     };
-
     private String id;
+
     private double lat;
     private double lng;
     private String name;
@@ -28,6 +28,7 @@ public class MyPlace implements Parcelable {
     private double rating;
     private String travelTime;
     private int priceRange;
+    private String foursquareUrl;
 
     private String[] imageUrls;
     private Tip[] tips;
@@ -40,7 +41,7 @@ public class MyPlace implements Parcelable {
     }
 
     public MyPlace(String id, double lat, double lng, String name, String address, double rating,
-                   String travelTime, int priceRange) {
+                   String travelTime, int priceRange, String foursquareUrl) {
         this.id = id;
         this.lat = lat;
         this.lng = lng;
@@ -49,6 +50,7 @@ public class MyPlace implements Parcelable {
         this.rating = rating;
         this.travelTime = travelTime;
         this.priceRange = priceRange;
+        this.foursquareUrl = foursquareUrl;
     }
 
     protected MyPlace(Parcel in) {
@@ -60,6 +62,7 @@ public class MyPlace implements Parcelable {
         rating = in.readDouble();
         travelTime = in.readString();
         priceRange = in.readInt();
+        foursquareUrl = in.readString();
     }
 
     public String getId() {
@@ -98,6 +101,14 @@ public class MyPlace implements Parcelable {
         return priceRange;
     }
 
+    public String getFoursquareUrl() {
+        return foursquareUrl;
+    }
+
+    public void setFoursquareUrl(String foursquareUrl) {
+        this.foursquareUrl = foursquareUrl;
+    }
+
     public String[] getImageUrls() {
         return imageUrls;
     }
@@ -129,5 +140,6 @@ public class MyPlace implements Parcelable {
         parcel.writeDouble(rating);
         parcel.writeString(travelTime);
         parcel.writeInt(priceRange);
+        parcel.writeString(foursquareUrl);
     }
 }

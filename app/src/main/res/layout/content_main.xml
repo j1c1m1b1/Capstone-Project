@@ -18,6 +18,7 @@
             android:id="@+id/layoutContent"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@drawable/tile_restaurant_back_white"
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
@@ -53,24 +54,32 @@
 
         </FrameLayout>
 
-        <android.support.v7.widget.CardView
-            android:id="@+id/cardAddress"
+        <LinearLayout
+            android:id="@+id/layoutAddress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="@dimen/inner_padding"
+            android:layout_marginLeft="@dimen/default_bar_elevation"
+            android:layout_marginStart="@dimen/default_bar_elevation"
+            android:layout_marginTop="@dimen/inner_padding_half"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="@dimen/inner_padding"
             android:visibility="gone">
 
-            <TextView
-                android:id="@+id/tvAddress"
+            <android.support.v7.widget.CardView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@color/white"
-                android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
+                app:cardCornerRadius="@dimen/default_card_radius">
+
+                <TextView
+                    android:id="@+id/tvAddress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:padding="@dimen/text_margin"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+            </android.support.v7.widget.CardView>
 
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/btnFavorites"
@@ -81,19 +90,20 @@
                 android:contentDescription="@string/favorite_places"
                 android:src="@drawable/ic_star_white_18dp"
                 app:fabSize="mini" />
-
-        </android.support.v7.widget.CardView>
-
+        </LinearLayout>
     </FrameLayout>
 
-    <LinearLayout
+    <android.support.v7.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="@drawable/gradient_white"
+        android:background="@color/white"
+        android:elevation="@dimen/default_bar_elevation"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="@dimen/activity_vertical_margin">
+        android:padding="@dimen/activity_vertical_margin"
+        app:elevation="@dimen/default_bar_elevation"
+        tools:ignore="UnusedAttribute">
 
         <TextSwitcher
             android:id="@+id/tsActionTitle"
@@ -121,6 +131,6 @@
             android:text="@string/getting_location_desc"
             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
             android:textColor="@color/colorPrimary"/>
-    </LinearLayout>
+    </android.support.v7.widget.LinearLayoutCompat>
 
 </LinearLayout>

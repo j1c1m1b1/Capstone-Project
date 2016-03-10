@@ -5,9 +5,10 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
-    <dimen name="default_bar_elevation">4dp</dimen>
+    <dimen name="default_bar_elevation">8dp</dimen>
 
-
+    <dimen name="default_card_radius">4dp</dimen>
+    <dimen name="inner_padding_half">4dp</dimen>
     <dimen name="inner_padding">16dp</dimen>
     <dimen name="view_margin_default">8dp</dimen>
     <dimen name="map_layout_height">240dp</dimen>
@@ -32,6 +33,7 @@
 
     <!--Progress Dialog-->
     <dimen name="progress_dialog_size">48dp</dimen>
+    <dimen name="map_margin_end">48dp</dimen>
 
 
 </resources>

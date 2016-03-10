@@ -81,6 +81,8 @@
     <string name="foursquare_client_secret">KGX30YDQZHBG1XJ5011UPJ4Q5FHVIXDLSQMYJJHYYDENNVAZ</string>
     <string name="got_it">We\'ve got your loaction!</string>
     <string name="press_button">Press the button to explore nearby venues</string>
+    <string name="no_address">No address found</string>
+    <string name="no_more_places">There are no more places to display</string>
 
 
 </resources>

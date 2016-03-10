@@ -37,6 +37,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                     ShakeMeUpContract.FavoritePlace.COLUMN_RATING + NUMBER_TYPE + COMMA_SEP +
                     ShakeMeUpContract.FavoritePlace.COLUMN_PRICE_RANGE + NUMBER_TYPE + COMMA_SEP +
                     ShakeMeUpContract.FavoritePlace.COLUMN_TRAVEL_TIME + TEXT_TYPE + COMMA_SEP +
+                    ShakeMeUpContract.FavoritePlace.COLUMN_4SQ_URL + TEXT_TYPE + COMMA_SEP +
                     ShakeMeUpContract.FavoritePlace.COLUMN_LAT + NUMBER_TYPE + COMMA_SEP +
                     ShakeMeUpContract.FavoritePlace.COLUMN_LNG + NUMBER_TYPE + " )";
 

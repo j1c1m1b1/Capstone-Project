@@ -40,6 +40,7 @@
                 android:alpha="0.0"
                 android:contentDescription="@string/app_name"
                 android:scaleType="centerCrop"
+                app:layout_collapseMode="parallax"
                 app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed" />
 
             <View
