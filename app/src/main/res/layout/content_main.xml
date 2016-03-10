@@ -53,6 +53,37 @@
 
         </FrameLayout>
 
+        <android.support.v7.widget.CardView
+            android:id="@+id/cardAddress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/inner_padding"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/inner_padding"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvAddress"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@color/white"
+                android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/btnFavorites"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/inner_padding"
+                android:layout_marginStart="@dimen/inner_padding"
+                android:contentDescription="@string/favorite_places"
+                android:src="@drawable/ic_star_white_18dp"
+                app:fabSize="mini" />
+
+        </android.support.v7.widget.CardView>
+
     </FrameLayout>
 
     <LinearLayout

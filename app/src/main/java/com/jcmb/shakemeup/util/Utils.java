@@ -13,10 +13,11 @@ import android.location.Location;
 import android.os.Parcelable;
 import android.support.annotation.DrawableRes;
 import android.support.graphics.drawable.VectorDrawableCompat;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
-import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Transformation;
 import android.widget.ImageView;
 
@@ -27,6 +28,9 @@ import com.jcmb.shakemeup.places.MyPlace;
 import com.jcmb.shakemeup.places.Tip;
 
 import java.util.Arrays;
+
+import io.codetail.animation.SupportAnimator;
+import io.codetail.animation.ViewAnimationUtils;
 
 /**
  * @author Julio Mendoza on 3/2/16.
@@ -176,7 +180,7 @@ public class Utils {
      * @see <a href="http://developer.android.com/training/animation/zoom.html#animate">Zooming a View</a>
      */
     public void zoomImageFromThumb(final View thumbView, final ImageView ivExpanded,
-                                   final View container, Context context, String imageUrl,
+                                   final View container, final View viewShadow, Context context, String imageUrl,
                                    Animator animator, final int duration) {
 
         this.animator = animator;
@@ -188,15 +192,13 @@ public class Utils {
         Glide.with(context).load(imageUrl).asBitmap().into(new SimpleTarget<Bitmap>() {
             @Override
             public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                animateZoom(thumbView, ivExpanded, container, duration, resource);
+                animateZoom(thumbView, ivExpanded, container, viewShadow, duration, resource);
             }
         });
-
-
     }
 
     private void animateZoom(final View thumbView, final ImageView ivExpanded,
-                             final View container, final int duration, Bitmap bitmap) {
+                             final View container, final View viewShadow, final int duration, Bitmap bitmap) {
         ivExpanded.setImageBitmap(bitmap);
 
         final Rect startBounds = new Rect();
@@ -207,7 +209,11 @@ public class Utils {
         container
                 .getGlobalVisibleRect(finalBounds, globalOffset);
 
-        float startScale = thumbView.getWidth() / ivExpanded.getWidth();
+        Log.d(Utils.class.getSimpleName(), "Thumb Width: " + thumbView.getWidth());
+        Log.d(Utils.class.getSimpleName(), "Expanded Width: " + ivExpanded.getWidth());
+
+        float startScale = (float) (thumbView.getWidth()) / (float) (ivExpanded.getWidth());
+        Log.d(Utils.class.getSimpleName(), "Start scale: " + startScale);
 
         float initialTop = ivExpanded.getTop();
         float initialLeft = ivExpanded.getLeft();
@@ -216,25 +222,34 @@ public class Utils {
 
         thumbView.getLocationOnScreen(location);
 
-        final float thumbLeft = location[0] + thumbView.getWidth() / 2;
-        final float thumbTop = location[1] + thumbView.getHeight() / 2;
+        final float thumbLeft = location[0];
+        final float thumbTop = location[1];
 
         ivExpanded.setVisibility(View.VISIBLE);
 
         ivExpanded.setPivotX(0f);
         ivExpanded.setPivotY(0f);
 
+        int cx = (location[0] + thumbView.getWidth()) / 2;
+        int cy = (location[1] + thumbView.getHeight()) / 2;
+
+        // get the final radius for the clipping circle
+        int finalRadius = Math.max(viewShadow.getWidth(), viewShadow.getHeight());
+
+        SupportAnimator shadowAnimator =
+                ViewAnimationUtils.createCircularReveal(viewShadow, cx, cy, 0, finalRadius);
+
         AnimatorSet set = new AnimatorSet();
         set
-                .play(ObjectAnimator.ofFloat(ivExpanded, View.X,
-                        thumbLeft, initialLeft))
-                .with(ObjectAnimator.ofFloat(ivExpanded, View.Y,
-                        thumbTop, initialTop))
-                .with(ObjectAnimator.ofFloat(ivExpanded, View.SCALE_X,
-                        startScale, 1f)).with(ObjectAnimator.ofFloat(ivExpanded,
-                View.SCALE_Y, startScale, 1f));
+                .play(ObjectAnimator.ofFloat(ivExpanded, View.X, thumbLeft, initialLeft))
+                .with(ObjectAnimator.ofFloat(ivExpanded, View.Y, thumbTop, initialTop))
+                .with(ObjectAnimator.ofFloat(ivExpanded, View.SCALE_X, startScale, 1f))
+                .with(ObjectAnimator.ofFloat(ivExpanded, View.SCALE_Y, startScale, 1f))
+                .with(ObjectAnimator.ofFloat(viewShadow, View.ALPHA, 0f, 1f, 0.5f))
+                .with(shadowAnimator);
+
         set.setDuration(duration);
-        set.setInterpolator(new DecelerateInterpolator());
+        set.setInterpolator(new AccelerateDecelerateInterpolator());
         set.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
@@ -247,6 +262,8 @@ public class Utils {
             }
         });
         set.start();
+
+
         this.animator = set;
 
         final float startScaleFinal = startScale;
@@ -258,19 +275,14 @@ public class Utils {
                 }
 
                 AnimatorSet set = new AnimatorSet();
-                set.play(ObjectAnimator
-                        .ofFloat(ivExpanded, View.X, thumbLeft))
-                        .with(ObjectAnimator
-                                .ofFloat(ivExpanded,
-                                        View.Y, thumbTop))
-                        .with(ObjectAnimator
-                                .ofFloat(ivExpanded,
-                                        View.SCALE_X, startScaleFinal))
-                        .with(ObjectAnimator
-                                .ofFloat(ivExpanded,
-                                        View.SCALE_Y, startScaleFinal));
+                set.play(ObjectAnimator.ofFloat(ivExpanded, View.X, thumbLeft))
+                        .with(ObjectAnimator.ofFloat(ivExpanded, View.Y, thumbTop))
+                        .with(ObjectAnimator.ofFloat(ivExpanded, View.SCALE_X, startScaleFinal))
+                        .with(ObjectAnimator.ofFloat(ivExpanded, View.SCALE_Y, startScaleFinal))
+                        .with(ObjectAnimator.ofFloat(viewShadow, View.ALPHA, 0f));
+
                 set.setDuration(duration);
-                set.setInterpolator(new DecelerateInterpolator());
+                set.setInterpolator(new AccelerateDecelerateInterpolator());
                 set.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {

@@ -34,5 +34,14 @@ dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.1.2'
     compile 'com.uber.sdk:rides-android:0.1.0'
     compile 'com.github.castorflex.smoothprogressbar:library-circular:1.1.0'
+    compile('com.github.ozodrukh:CircularReveal:1.3.1@aar') {
+        transitive = true;
+    }
+
+    repositories {
+        maven {
+            url "https://jitpack.io"
+        }
+    }
 
 }

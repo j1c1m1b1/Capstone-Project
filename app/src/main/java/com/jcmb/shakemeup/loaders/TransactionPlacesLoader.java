@@ -120,7 +120,6 @@ public class TransactionPlacesLoader extends AsyncTaskLoader<Object> {
             String imageUrl;
             for (int i = 0; i < valuesArray.length; i++) {
                 imageUrl = imageUrls[i];
-                values.clear();
 
                 values.put(ShakeMeUpContract.PlaceImage.COLUMN_IMAGE_URL, imageUrl);
                 values.put(ShakeMeUpContract.PlaceImage.COLUMN_PLACE_ID, placeId);

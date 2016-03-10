@@ -95,19 +95,25 @@
         app:layout_anchor="@id/app_bar"
         app:layout_anchorGravity="bottom|end" />
 
-    <FrameLayout
+    <io.codetail.widget.RevealFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ImageView
-            android:id="@+id/ivExpanded"
-            android:layout_width="@dimen/expanded_image_view_size"
-            android:layout_height="@dimen/expanded_image_view_size"
-            android:layout_gravity="center"
-            android:contentDescription="@null"
-            android:scaleType="centerCrop"
-            android:src="@drawable/default_placeholder"
-            android:visibility="invisible" />
-    </FrameLayout>
+        <View
+            android:id="@+id/viewShadow"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0.0"
+            android:background="@color/colorPrimary" />
+    </io.codetail.widget.RevealFrameLayout>
 
+    <ImageView
+        android:id="@+id/ivExpanded"
+        android:layout_width="@dimen/expanded_image_view_size"
+        android:layout_height="@dimen/expanded_image_view_size"
+        android:layout_gravity="center"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:src="@drawable/default_placeholder"
+        android:visibility="invisible" />
 </android.support.design.widget.CoordinatorLayout>

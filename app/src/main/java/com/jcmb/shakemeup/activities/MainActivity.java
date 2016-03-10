@@ -13,6 +13,7 @@ import android.support.annotation.StringRes;
 import android.support.annotation.StyleRes;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -67,6 +68,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
 
     private AlertDialog loadingDialog;
 
+    private CardView cardAddress;
+
+    private TextView tvAddress;
+
+    private FloatingActionButton btnFavorites;
+
     private FloatingActionButton btnPlaces;
 
     private boolean first = true;
@@ -109,6 +116,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback {
         builder.setView(R.layout.dialog_progress);
 
         btnPlaces = (FloatingActionButton) findViewById(R.id.btnPlaces);
+
+        cardAddress = (CardView) findViewById(R.id.cardAddress);
+
+        tvAddress = (TextView) findViewById(R.id.tvAddress);
+
+        btnFavorites = (FloatingActionButton) findViewById(R.id.btnFavorites);
 
         loadingDialog = builder.create();
         loadingDialog.setCancelable(false);

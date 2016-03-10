@@ -142,6 +142,8 @@ public class PlaceActivity extends ShakeActivity
 
     private ImageView ivExpanded;
 
+    private View viewShadow;
+
     private Animator animator;
 
     private int animationDuration;
@@ -160,7 +162,7 @@ public class PlaceActivity extends ShakeActivity
         initUI();
         this.getLoaderManager();
 
-        animationDuration = getResources().getInteger(android.R.integer.config_shortAnimTime);
+        animationDuration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
 
         if (myPlace == null) {
             Intent intent = getIntent();
@@ -219,6 +221,8 @@ public class PlaceActivity extends ShakeActivity
         });
 
         ivExpanded = (ImageView) findViewById(R.id.ivExpanded);
+
+        viewShadow = findViewById(R.id.viewShadow);
 
         rvPhotos = (RecyclerView)findViewById(R.id.rvPhotos);
         RecyclerView.LayoutManager manager = new LinearLayoutManager(this,
@@ -784,7 +788,7 @@ public class PlaceActivity extends ShakeActivity
     public void onClick(ImageView ivPhoto, String imageUrl) {
         Utils utils = Utils.getInstance();
 
-        utils.zoomImageFromThumb(ivPhoto, ivExpanded, rootView, this, imageUrl,
+        utils.zoomImageFromThumb(ivPhoto, ivExpanded, rootView, viewShadow, this, imageUrl,
                 animator, animationDuration);
     }
 }
