@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
 import com.jcmb.shakemeup.R;
+import com.jcmb.shakemeup.sync.SMUSyncAdapter;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -50,6 +51,8 @@ public class SplashActivity extends AppCompatActivity {
 
         Timer timer = new Timer();
         timer.schedule(task, TIME);
+
+        SMUSyncAdapter.initializeSyncAdapter(this);
     }
 
     @Override

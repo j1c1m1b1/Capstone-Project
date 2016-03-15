@@ -35,5 +35,10 @@
     <dimen name="progress_dialog_size">48dp</dimen>
     <dimen name="map_margin_end">48dp</dimen>
 
-
+    <!--Widget-->
+    <dimen name="widget_default_width">250dp</dimen>
+    <dimen name="widget_default_height">180dp</dimen>
+    <dimen name="widget_min_resize_width">220dp</dimen>
+    <dimen name="widget_min_resize_height">80dp</dimen>
+    <dimen name="widget_margin">8dp</dimen>
 </resources>

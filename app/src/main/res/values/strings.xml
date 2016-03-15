@@ -43,6 +43,9 @@
     <string name="error_title">Sorry!</string>
     <string name="error_server_down">The server appear to be down.\nTry again later</string>
     <string name="error_corrupted_data">The information appears to be wrong.\nTry again later</string>
+    <string name="got_it">We\'ve got your location!</string>
+    <string name="press_button">Press the button to explore nearby venues</string>
+    <string name="no_address">No address found</string>
 
     <!--Fragment 1-->
     <string name="food">Food</string>
@@ -69,19 +72,20 @@
     <string name="error_transaction">There was an error modifying favorites</string>
     <string name="favorite_places">Your favorite venues</string>
     <string name="map_intent_uri_format">http://maps.google.com/maps?daddr=%1$f,%2$f</string>
+    <string name="no_more_places">There are no more places to display</string>
 
     <!--Content Provider-->
     <string name="authority" translatable="false">com.jcmb.shakemeup.provider</string>
+
+    <!--Sync Adapter-->
 
     <!--Keys-->
     <string name="places_server_api_key" translatable="false">AIzaSyCuexRsZ-WRaWiQyxygNeySjaR_gX-Z8T4</string>
     <string name="uber_client_id" translatable="false">2Js3Bb3d5f5MMSz0–8iRCP7pRyBiRduC</string>
     <string name="foursquare_client_id">JDMFQCP200BPJXX30YF2AIN4WJKWNQPLDTRY4CN01SZPXUAF</string>
     <string name="foursquare_client_secret">KGX30YDQZHBG1XJ5011UPJ4Q5FHVIXDLSQMYJJHYYDENNVAZ</string>
-    <string name="got_it">We\'ve got your loaction!</string>
-    <string name="press_button">Press the button to explore nearby venues</string>
-    <string name="no_address">No address found</string>
-    <string name="no_more_places">There are no more places to display</string>
-
+    <string name="sync_account_type" translatable="false">com.jcmb.shakemeup</string>
+    <string name="widget_action" translatable="false">com.jcmb.shakemeup.ACTION_DATA_UPDATED</string>
+    <string name="no_places">There are no places to display yet</string>
 
 </resources>

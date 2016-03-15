@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
@@ -37,6 +38,7 @@ import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.connection.Requests;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
 import com.jcmb.shakemeup.places.Parser;
+import com.jcmb.shakemeup.sync.SMUSyncAdapter;
 import com.jcmb.shakemeup.util.ShakeDetector;
 import com.jcmb.shakemeup.util.Utils;
 
@@ -51,6 +53,9 @@ import java.util.TimerTask;
 public class BaseActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
+    public static final String LOCATION_LAT = "lat";
+    public static final String LOCATION_LNG = "lng";
+    public static final String ADDRESS = "address";
     protected static final String TAG = BaseActivity.class.getSimpleName();
     private static final int LOCATION_PERMS_REQUEST_CODE = 100;
     private static final int REQUEST_CHECK_SETTINGS = 200;
@@ -347,6 +352,11 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
         if (shouldUpdateMap)
         {
             currentLocation = location;
+            SharedPreferences prefs = getSharedPreferences(SplashActivity.PREFS, MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putLong(LOCATION_LAT, Double.doubleToLongBits(currentLocation.getLatitude()));
+            editor.putLong(LOCATION_LNG, Double.doubleToLongBits(currentLocation.getLongitude()));
+            editor.apply();
             getCurrentAddress();
         }
     }
@@ -359,6 +369,12 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
                     public void onComplete(JSONObject jsonResponse, int status) {
                         if (status == Requests.SERVICE_STATUS_SUCCESS) {
                             currentAddress = Parser.getAddress(jsonResponse);
+
+                            SharedPreferences prefs = getSharedPreferences(SplashActivity.PREFS, MODE_PRIVATE);
+                            SharedPreferences.Editor editor = prefs.edit();
+                            editor.putString(ADDRESS, currentAddress);
+                            editor.apply();
+                            SMUSyncAdapter.syncImmediately(BaseActivity.this);
                         } else {
                             Log.e(MainActivity.class.getSimpleName(),
                                     "Error getting current location address");

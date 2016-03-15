@@ -1,9 +1,7 @@
 package com.jcmb.shakemeup.fragments;
 
 import android.animation.Animator;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -35,15 +33,14 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.PlacePhotoResult;
-import com.google.android.gms.location.places.Places;
 import com.jcmb.shakemeup.R;
+import com.jcmb.shakemeup.activities.FavoritePlaceActivity;
 import com.jcmb.shakemeup.activities.PlaceActivity;
 import com.jcmb.shakemeup.adapters.VenuePhotosAdapter;
+import com.jcmb.shakemeup.interfaces.OnApiClientReadyListener;
 import com.jcmb.shakemeup.interfaces.OnVenuePhotoClickedListener;
 import com.jcmb.shakemeup.loaders.PlacePhotoLoader;
 import com.jcmb.shakemeup.loaders.TransactionPlacesLoader;
@@ -61,15 +58,12 @@ import fr.castorflex.android.circularprogressbar.CircularProgressBar;
  * @author Julio Mendoza on 3/13/16.
  */
 public class FavoritePlaceFragment extends Fragment
-        implements LoaderManager.LoaderCallbacks<Object>, OnVenuePhotoClickedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+        implements LoaderManager.LoaderCallbacks<Object>, OnVenuePhotoClickedListener,
+        OnApiClientReadyListener {
 
-    protected static final String TAG = FavoritePlaceFragment.class.getSimpleName();
-    private static final String PLACE = "place";
-    private static final int API_CLIENT_RESOLUTION_REQUEST = 300;
-
-    protected GoogleApiClient apiClient;
-
-    private MyPlace myPlace;
+    public static final String PLACE = "place";
+    private static final String TAG = FavoritePlaceFragment.class.getSimpleName();
+    private MyPlace place;
 
     private CollapsingToolbarLayout toolbarLayout;
 
@@ -123,27 +117,25 @@ public class FavoritePlaceFragment extends Fragment
         return fragment;
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Bundle args = getArguments();
-        if (args != null) {
-            myPlace = getArguments().getParcelable(PLACE);
-        }
-    }
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater,
                              @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
+
         view = LayoutInflater.from(getContext())
                 .inflate(R.layout.fragment_favorite_place, container, false);
-        if (savedInstanceState != null) {
-            myPlace = savedInstanceState.getParcelable(PLACE);
+        Bundle args = getArguments();
+        if (args != null) {
+            place = getArguments().getParcelable(PLACE);
+        } else if (savedInstanceState != null) {
+            place = savedInstanceState.getParcelable(PLACE);
         }
 
-        initUI(view);
+        if (place != null) {
+            initUI(view);
+        }
+
         return view;
     }
 
@@ -151,19 +143,12 @@ public class FavoritePlaceFragment extends Fragment
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         animationDuration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
-        startApiClient();
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable(PLACE, myPlace);
+        outState.putParcelable(PLACE, place);
     }
 
     @Override
@@ -174,33 +159,9 @@ public class FavoritePlaceFragment extends Fragment
         }
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (apiClient != null && isAdded()) {
-            apiClient.connect();
-        }
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (apiClient != null) {
-            apiClient.disconnect();
-        }
-    }
-
-    private void startApiClient() {
-        if (apiClient == null) {
-            apiClient = new GoogleApiClient.Builder(getActivity()).
-                    addConnectionCallbacks(this).
-                    addOnConnectionFailedListener(this).
-                    addApi(Places.GEO_DATA_API).
-                    addApi(LocationServices.API)
-                    .build();
-
-            apiClient.connect();
-        }
+    public void setPlace(MyPlace place) {
+        this.place = place;
+        initUI(view);
     }
 
     private void initUI(View view) {
@@ -247,33 +208,33 @@ public class FavoritePlaceFragment extends Fragment
     }
 
     private void bindPlace() {
-        toolbarLayout.setTitle(myPlace.getName());
+        toolbarLayout.setTitle(place.getName());
 
-        rbPlace.setRating((float) myPlace.getRating());
+        rbPlace.setRating((float) place.getRating());
 
-        tvByline.setText(myPlace.getAddress());
+        tvByline.setText(place.getAddress());
 
-        String priceRange = Utils.parsePriceRange(myPlace.getPriceRange(), getContext());
+        String priceRange = Utils.parsePriceRange(place.getPriceRange(), getContext());
 
         tvPriceRange.setText(Html.fromHtml(priceRange));
 
-        double lat = myPlace.getLat();
+        double lat = place.getLat();
 
-        double lng = myPlace.getLng();
+        double lng = place.getLng();
 
-        if (!myPlace.getTravelTime().isEmpty()) {
-            tvDuration.setText(myPlace.getTravelTime());
+        if (!place.getTravelTime().isEmpty()) {
+            tvDuration.setText(place.getTravelTime());
         }
 
         pbLoading.setVisibility(View.GONE);
 
-        if (myPlace.getImageUrls() != null) {
-            imageUrls = myPlace.getImageUrls();
+        if (place.getImageUrls() != null) {
+            imageUrls = place.getImageUrls();
             bindImageUrls();
         }
 
-        if (myPlace.getTips() != null) {
-            tips = myPlace.getTips();
+        if (place.getTips() != null) {
+            tips = place.getTips();
             bindTips();
         }
 
@@ -297,7 +258,7 @@ public class FavoritePlaceFragment extends Fragment
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(myPlace.getFoursquareUrl()));
+                intent.setData(Uri.parse(place.getFoursquareUrl()));
                 startActivity(intent);
             }
         });
@@ -384,18 +345,23 @@ public class FavoritePlaceFragment extends Fragment
     @Override
     public Loader<Object> onCreateLoader(int id, Bundle args) {
         if (id == PlaceActivity.PLACE_PHOTO_LOADER_ID) {
-            PlacePhotoLoader photoLoader = new PlacePhotoLoader(getContext());
-            ResultCallback<PlacePhotoResult> photoResultCallback = getResultCallback();
-            photoLoader.initialize(apiClient, myPlace.getId(), photoResultCallback);
+            FavoritePlaceActivity activity = (FavoritePlaceActivity) getActivity();
 
-            photoLoader.forceLoad();
+            if (activity != null) {
+                GoogleApiClient apiClient = activity.getApiClient();
+                PlacePhotoLoader photoLoader = new PlacePhotoLoader(getContext());
+                ResultCallback<PlacePhotoResult> photoResultCallback = getResultCallback();
+                photoLoader.initialize(apiClient, place.getId(), photoResultCallback);
 
-            return photoLoader;
+                photoLoader.forceLoad();
+
+                return photoLoader;
+            }
+            return null;
         } else {
             int transaction = args.getInt(PlaceActivity.TRANSACTION);
-            return new TransactionPlacesLoader(getContext(), transaction, myPlace, imageUrls, tips);
+            return new TransactionPlacesLoader(getContext(), transaction, place, imageUrls, tips);
         }
-
     }
 
     @Override
@@ -414,8 +380,6 @@ public class FavoritePlaceFragment extends Fragment
             @Override
             public void onResult(@NonNull PlacePhotoResult placePhotoResult) {
                 if (placePhotoResult.getStatus().isSuccess()) {
-
-                    Log.d(TAG, "Image Load Success");
 
                     Bitmap bitmap = placePhotoResult.getBitmap();
 
@@ -464,23 +428,7 @@ public class FavoritePlaceFragment extends Fragment
     }
 
     @Override
-    public void onConnected(@Nullable Bundle bundle) {
+    public void onApiClientReady() {
         getLoaderManager().restartLoader(PlaceActivity.PLACE_PHOTO_LOADER_ID, null, this);
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        apiClient.connect();
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.i(TAG, "Connection failed: " + connectionResult.getErrorCode());
-
-        try {
-            connectionResult.startResolutionForResult(getActivity(), API_CLIENT_RESOLUTION_REQUEST);
-        } catch (IntentSender.SendIntentException e) {
-            e.printStackTrace();
-        }
     }
 }
