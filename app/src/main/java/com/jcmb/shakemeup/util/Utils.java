@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.places.MyPlace;
 import com.jcmb.shakemeup.places.Tip;
 
@@ -167,6 +168,30 @@ public class Utils {
         a.setDuration(((int) (targetWidth
                 / v.getContext().getResources().getDisplayMetrics().density)) * 4);
         v.startAnimation(a);
+    }
+
+    public static String parsePriceRange(int priceLevel, Context context) {
+        priceLevel = priceLevel == -1 ? 0 : priceLevel;
+        String priceRangeFormat = context.getString(R.string.price_range_format);
+        String priceRange = null;
+        switch (priceLevel) {
+            case 0:
+                priceRange = String.format(priceRangeFormat, "$", "$$$$");
+                break;
+            case 1:
+                priceRange = String.format(priceRangeFormat, "$$", "$$$");
+                break;
+            case 2:
+                priceRange = String.format(priceRangeFormat, "$$$", "$$");
+                break;
+            case 3:
+                priceRange = String.format(priceRangeFormat, "$$$$", "$");
+                break;
+            case 4:
+                priceRange = String.format(priceRangeFormat, "", "$$$$$");
+                break;
+        }
+        return priceRange;
     }
 
     /**

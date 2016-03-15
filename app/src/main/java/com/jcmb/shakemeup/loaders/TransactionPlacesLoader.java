@@ -1,6 +1,5 @@
 package com.jcmb.shakemeup.loaders;
 
-import android.content.AsyncTaskLoader;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -9,6 +8,7 @@ import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
+import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
 
 import com.jcmb.shakemeup.R;

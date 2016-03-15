@@ -5,7 +5,6 @@
     <string name="app_name_styled">SHAKE <b>ME</b> UP</string>
 
 
-    <string name="action_settings">Settings</string>
     <string name="location_perms_title">The location permission</string>
     <string name="location_perms_message">We need the location permission to know the myPlaces near you</string>
     <string name="request_perms">Request permissions</string>

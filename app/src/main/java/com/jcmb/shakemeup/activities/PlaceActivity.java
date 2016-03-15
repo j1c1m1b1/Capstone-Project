@@ -1,9 +1,7 @@
 package com.jcmb.shakemeup.activities;
 
 import android.animation.Animator;
-import android.app.LoaderManager;
 import android.content.Intent;
-import android.content.Loader;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -14,7 +12,9 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.Loader;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.AppCompatRatingBar;
@@ -28,7 +28,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -49,8 +48,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.adapters.VenuePhotosAdapter;
 import com.jcmb.shakemeup.connection.Requests;
-import com.jcmb.shakemeup.interfaces.OnItemClickedListener;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
+import com.jcmb.shakemeup.interfaces.OnVenuePhotoClickedListener;
 import com.jcmb.shakemeup.interfaces.OnVenuesRequestCompleteListener;
 import com.jcmb.shakemeup.loaders.PlacePhotoLoader;
 import com.jcmb.shakemeup.loaders.QueryLoader;
@@ -75,24 +74,24 @@ import java.util.TimerTask;
 import fr.castorflex.android.circularprogressbar.CircularProgressBar;
 
 public class PlaceActivity extends ShakeActivity
-        implements LoaderManager.LoaderCallbacks<Object>, OnMapReadyCallback, OnItemClickedListener {
+        implements LoaderManager.LoaderCallbacks<Object>, OnMapReadyCallback,
+        OnVenuePhotoClickedListener {
 
     public static final String PLACE_ID = "place_id";
     public static final String PICKUP_LATITUDE = "pickup_lat";
     public static final String PICKUP_LONGITUDE = "pickup_lng";
     public static final String PICKUP_ADDRESS = "pickup_address";
     public static final String PLACE_IDS = "place_ids";
+    public static final String TRANSACTION = "transaction";
+    public static final int PLACE_PHOTO_LOADER_ID = 100;
+    public static final int TRANSACTION_LOADER_ID = 300;
+    public static final String TEXT_TYPE = "text/plain";
     protected static final String TAG = PlaceActivity.class.getSimpleName();
     private static final String FAVORITE = "favorite";
-    private static final String TRANSACTION = "transaction";
     private static final String PLACE = "place";
     private static final String TIPS = "tips";
     private static final String IMAGE_URLS = "imageUrls";
-    private static final int PLACE_PHOTO_LOADER_ID = 100;
     private static final int QUERY_LOADER_ID = 200;
-    private static final int TRANSACTION_LOADER_ID = 300;
-    private static final String TEXT_TYPE = "text/plain";
-
     //UI
     private CollapsingToolbarLayout toolbarLayout;
 
@@ -118,6 +117,12 @@ public class PlaceActivity extends ShakeActivity
 
     private CoordinatorLayout rootView;
 
+    private ImageView ivExpanded;
+
+    private View viewShadow;
+
+    private FloatingActionButton btnFavorite;
+
     //Fields
 
     private String placeId;
@@ -128,8 +133,6 @@ public class PlaceActivity extends ShakeActivity
 
     private String pickupAddress;
 
-    private FloatingActionButton btnFavorite;
-
     private boolean isFavorite;
 
     private ArrayList<String> placeIDs;
@@ -139,10 +142,6 @@ public class PlaceActivity extends ShakeActivity
     private String[] imageUrls;
 
     private Tip[] tips;
-
-    private ImageView ivExpanded;
-
-    private View viewShadow;
 
     private Animator animator;
 
@@ -160,7 +159,7 @@ public class PlaceActivity extends ShakeActivity
 
         restoreState(savedInstanceState);
         initUI();
-        this.getLoaderManager();
+        this.getSupportLoaderManager();
 
         animationDuration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
 
@@ -174,8 +173,6 @@ public class PlaceActivity extends ShakeActivity
 
     private void initUI()
     {
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
-
         setContentView(R.layout.activity_place);
 
         setNavigationBarColor();
@@ -237,11 +234,18 @@ public class PlaceActivity extends ShakeActivity
 
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (animator != null && animator.isRunning()) {
+            animator.cancel();
+        }
+    }
 
     @Override
     protected void onStop() {
         super.onStop();
-        getLoaderManager().destroyLoader(PLACE_PHOTO_LOADER_ID);
+        getSupportLoaderManager().destroyLoader(PLACE_PHOTO_LOADER_ID);
     }
 
     private void getIntentInfo(Intent intent)
@@ -258,7 +262,7 @@ public class PlaceActivity extends ShakeActivity
 
             if (myPlace == null) {
                 //Check if it is favorite
-                getLoaderManager().initLoader(QUERY_LOADER_ID, null, this).forceLoad();
+                getSupportLoaderManager().initLoader(QUERY_LOADER_ID, null, this).forceLoad();
             } else {
                 bindPlace();
             }
@@ -314,7 +318,7 @@ public class PlaceActivity extends ShakeActivity
         if (!isFavorite && !loading && myPlace == null) {
             getPlace();
         }
-        getLoaderManager().restartLoader(PLACE_PHOTO_LOADER_ID, null, this);
+        getSupportLoaderManager().restartLoader(PLACE_PHOTO_LOADER_ID, null, this);
     }
 
     private void getPlace()
@@ -353,7 +357,7 @@ public class PlaceActivity extends ShakeActivity
 
         tvByline.setText(myPlace.getAddress());
 
-        String priceRange = parsePriceRange(myPlace.getPriceRange());
+        String priceRange = Utils.parsePriceRange(myPlace.getPriceRange(), this);
 
         tvPriceRange.setText(Html.fromHtml(priceRange));
 
@@ -402,7 +406,7 @@ public class PlaceActivity extends ShakeActivity
     private void switchFavorite(String message) {
         isFavorite = !isFavorite;
 
-        getLoaderManager().destroyLoader(TRANSACTION_LOADER_ID);
+        getSupportLoaderManager().destroyLoader(TRANSACTION_LOADER_ID);
 
         updateFavoriteButton();
 
@@ -432,7 +436,7 @@ public class PlaceActivity extends ShakeActivity
         Bundle args = new Bundle();
         args.putInt(TRANSACTION, transaction);
 
-        getLoaderManager().initLoader(TRANSACTION_LOADER_ID, args, this).forceLoad();
+        getSupportLoaderManager().initLoader(TRANSACTION_LOADER_ID, args, this).forceLoad();
     }
 
     private void updateFavoriteButton() {
@@ -580,14 +584,12 @@ public class PlaceActivity extends ShakeActivity
 
         if (tips != null && tips.length > 0)
         {
-
-
             LinearLayout layoutTips = (LinearLayout) findViewById(R.id.layoutTips);
             layoutTips.setVisibility(View.VISIBLE);
             TipView viewItemTip;
             Tip tip;
 
-            for (int i = 0; i < layoutTips.getChildCount(); i++) {
+            for (int i = 0; i < tips.length; i++) {
                 tip = tips[i];
                 viewItemTip = (TipView) layoutTips.getChildAt(i);
                 viewItemTip.bind(tip);
@@ -705,33 +707,9 @@ public class PlaceActivity extends ShakeActivity
 
     @Override
     public void onLoaderReset(Loader loader) {
-        getLoaderManager().destroyLoader(PLACE_PHOTO_LOADER_ID);
+        getSupportLoaderManager().destroyLoader(PLACE_PHOTO_LOADER_ID);
     }
 
-    private String parsePriceRange(int priceLevel) {
-        priceLevel = priceLevel == -1 ? 0 : priceLevel;
-
-        String priceRange = null;
-        switch (priceLevel)
-        {
-            case 0:
-                priceRange = String.format(getString(R.string.price_range_format), "$", "$$$$");
-                break;
-            case 1:
-                priceRange = String.format(getString(R.string.price_range_format), "$$", "$$$");
-                break;
-            case 2:
-                priceRange = String.format(getString(R.string.price_range_format), "$$$", "$$");
-                break;
-            case 3:
-                priceRange = String.format(getString(R.string.price_range_format), "$$$$", "$");
-                break;
-            case 4:
-                priceRange = String.format(getString(R.string.price_range_format), "", "$$$$$");
-                break;
-        }
-        return priceRange;
-    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {

@@ -9,7 +9,7 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.jcmb.shakemeup.R;
-import com.jcmb.shakemeup.interfaces.OnItemClickedListener;
+import com.jcmb.shakemeup.interfaces.OnVenuePhotoClickedListener;
 
 /**
  * @author Julio Mendoza on 1/20/16.
@@ -20,9 +20,9 @@ public class VenuePhotosAdapter extends RecyclerView.Adapter<VenuePhotosAdapter.
 
     private Context context;
 
-    private OnItemClickedListener listener;
+    private OnVenuePhotoClickedListener listener;
 
-    public VenuePhotosAdapter(String[] photoUrls, Context context, OnItemClickedListener listener) {
+    public VenuePhotosAdapter(String[] photoUrls, Context context, OnVenuePhotoClickedListener listener) {
         this.photoUrls = photoUrls;
         this.context = context;
         this.listener = listener;

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/tile_restaurant_back_white"
+    tools:context=".activities.FavoritePlacesActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="@dimen/default_bar_elevation"
+        android:theme="@style/AppTheme.NoActionBar.AppBarOverlay"
+        app:elevation="@dimen/default_bar_elevation"
+        app:popupTheme="@style/AppTheme.NoActionBar.PopupOverlay"
+        app:title="@string/app_name"
+        tools:ignore="UnusedAttribute" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?android:attr/actionBarSize"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <fragment
+            android:id="@+id/fragmentFavPlaces"
+            class="com.jcmb.shakemeup.fragments.FavoritePlaceFragment"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            tools:layout="@layout/fragment_favorite_places" />
+
+        <FrameLayout
+            android:id="@+id/layoutContainer"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:visibility="gone" />
+    </LinearLayout>
+
+</android.support.design.widget.CoordinatorLayout>

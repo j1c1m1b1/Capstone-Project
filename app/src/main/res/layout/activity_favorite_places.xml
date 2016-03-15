@@ -26,40 +26,11 @@
             app:title="@string/app_name"
             tools:ignore="UnusedAttribute" />
 
-        <FrameLayout
+        <fragment
+            android:id="@+id/fragmentFavPlaces"
+            android:name="com.jcmb.shakemeup.fragments.FavoritePlacesFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/rvFavoritePlaces"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone" />
-
-            <LinearLayout
-                android:id="@+id/emptyView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center_horizontal"
-                android:orientation="vertical">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:contentDescription="@null"
-                    app:srcCompat="@drawable/empty" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/activity_vertical_margin"
-                    android:text="@string/no_favorites"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Subhead" />
-
-            </LinearLayout>
-
-        </FrameLayout>
-
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_favorite_places" />
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

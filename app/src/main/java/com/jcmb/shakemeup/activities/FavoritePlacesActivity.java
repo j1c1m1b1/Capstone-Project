@@ -1,34 +1,33 @@
 package com.jcmb.shakemeup.activities;
 
-import android.database.Cursor;
-import android.net.Uri;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.widget.FrameLayout;
 
 import com.jcmb.shakemeup.R;
-import com.jcmb.shakemeup.adapters.FavoritePlacesAdapter;
-import com.jcmb.shakemeup.data.ShakeMeUpContract;
+import com.jcmb.shakemeup.fragments.FavoritePlaceFragment;
+import com.jcmb.shakemeup.fragments.FavoritePlacesFragment;
+import com.jcmb.shakemeup.places.MyPlace;
+import com.jcmb.shakemeup.util.Utils;
 
 /**
  * @author Julio Mendoza on 3/2/16.
  */
-public class FavoritePlacesActivity extends AppCompatActivity
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+public class FavoritePlacesActivity extends AppCompatActivity {
 
-    private FavoritePlacesAdapter adapter;
-    private RecyclerView rvFavoritePlaces;
-    private LinearLayout emptyView;
+    private FavoritePlacesFragment placesFragment;
+    private FavoritePlaceFragment placeFragment;
+    private boolean showIndicator;
+    private FragmentManager manager;
+    private FrameLayout layoutContainer;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -43,40 +42,66 @@ public class FavoritePlacesActivity extends AppCompatActivity
             actionBar.setTitle(R.string.favorite_places);
         }
 
-        adapter = new FavoritePlacesAdapter(this);
+        layoutContainer = (FrameLayout) findViewById(R.id.layoutContainer);
 
-        rvFavoritePlaces = (RecyclerView) findViewById(R.id.rvFavoritePlaces);
-        LinearLayoutManager manager = new LinearLayoutManager(this);
-        rvFavoritePlaces.setLayoutManager(manager);
-        rvFavoritePlaces.setItemAnimator(new DefaultItemAnimator());
-        rvFavoritePlaces.setAdapter(adapter);
+        showIndicator = layoutContainer != null;
 
-        emptyView = (LinearLayout) findViewById(R.id.emptyView);
+        placesFragment = (FavoritePlacesFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.fragmentFavPlaces);
 
-        getSupportLoaderManager().initLoader(0, null, this).forceLoad();
+        placesFragment.setShowIndicator(showIndicator);
+
+        manager = getSupportFragmentManager();
+
+        manager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+
+            int previousCount;
+
+            @Override
+            public void onBackStackChanged() {
+                int entryCount = manager.getBackStackEntryCount();
+                if (entryCount == 0) {
+                    refreshActionBar();
+                    placesFragment.clearSelection();
+                } else if (entryCount < previousCount) {
+                    int position = Integer.parseInt(manager.getBackStackEntryAt(entryCount - 1).getName());
+                    placesFragment.setSelection(position);
+                }
+                previousCount = entryCount;
+            }
+        });
+        refreshActionBar();
+
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Uri uri = ShakeMeUpContract.FavoritePlace.CONTENT_URI.buildUpon().build();
-
-        return new CursorLoader(this, uri, null, null, null, null);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (data != null && data.getCount() > 0) {
-            emptyView.setVisibility(View.GONE);
-            rvFavoritePlaces.setVisibility(View.VISIBLE);
-        } else {
-            emptyView.setVisibility(View.VISIBLE);
-            rvFavoritePlaces.setVisibility(View.GONE);
+    private void refreshActionBar() {
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(R.string.favorite_places);
         }
-        adapter.setCursor(data);
     }
 
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        adapter.setCursor(null);
+    public void onFavPlaceClicked(int position, MyPlace place) {
+        if (showIndicator) {
+            placeFragment = FavoritePlaceFragment.newInstance(place);
+            placeFavoritePlaceFragment(position);
+        } else {
+            Intent intent = new Intent(this, FavoritePlaceActivity.class);
+            intent.putExtra(FavoritePlaceActivity.PLACE, place);
+            startActivity(intent);
+        }
     }
+
+    private void placeFavoritePlaceFragment(int position) {
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.add(R.id.layoutContainer, placeFragment);
+        transaction.addToBackStack("" + position);
+        transaction.commit();
+
+        if (layoutContainer.getVisibility() == View.GONE) {
+            Utils.expandHorizontal(layoutContainer);
+        }
+    }
+
+
 }

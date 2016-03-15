@@ -63,6 +63,8 @@ public class MyPlace implements Parcelable {
         travelTime = in.readString();
         priceRange = in.readInt();
         foursquareUrl = in.readString();
+        tips = in.createTypedArray(Tip.CREATOR);
+        imageUrls = in.createStringArray();
     }
 
     public String getId() {
@@ -141,5 +143,7 @@ public class MyPlace implements Parcelable {
         parcel.writeString(travelTime);
         parcel.writeInt(priceRange);
         parcel.writeString(foursquareUrl);
+        parcel.writeTypedArray(tips, 0);
+        parcel.writeStringArray(imageUrls);
     }
 }

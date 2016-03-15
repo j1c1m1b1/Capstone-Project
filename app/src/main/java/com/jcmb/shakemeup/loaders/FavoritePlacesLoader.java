@@ -11,16 +11,61 @@ import com.jcmb.shakemeup.data.ShakeMeUpContract;
 import com.jcmb.shakemeup.places.MyPlace;
 import com.jcmb.shakemeup.places.Tip;
 
+import java.util.ArrayList;
+
 /**
- * @author Julio Mendoza on 3/2/16.
+ * @author Julio Mendoza on 3/14/16.
  */
-public class QueryLoader extends AsyncTaskLoader<Object> {
+public class FavoritePlacesLoader extends AsyncTaskLoader<ArrayList<MyPlace>> {
 
-    private String placeId;
-
-    public QueryLoader(Context context, String placeId) {
+    public FavoritePlacesLoader(Context context) {
         super(context);
-        this.placeId = placeId;
+    }
+
+    @Override
+    public ArrayList<MyPlace> loadInBackground() {
+        ArrayList<MyPlace> places = new ArrayList<>();
+
+        MyPlace place;
+
+        Uri uri = ShakeMeUpContract.FavoritePlace.CONTENT_URI;
+
+        Log.d(this.getClass().getSimpleName(), uri.toString());
+
+        Cursor cursor = getContext().getContentResolver().query(uri, null, null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                String placeId = cursor.getString(1);
+                String name = cursor.getString(2);
+                String address = cursor.getString(3);
+                double rating = cursor.getDouble(4);
+                int priceRange = cursor.getInt(5);
+                String travelTime = cursor.getString(6);
+                double lat = cursor.getDouble(7);
+                double lng = cursor.getDouble(8);
+                String foursquareUrl = cursor.getString(9);
+
+                place = new MyPlace(placeId, lat, lng, name, address, rating, travelTime,
+                        priceRange, foursquareUrl);
+
+                place = populatePlace(place);
+
+                places.add(place);
+            }
+            while (cursor.moveToNext());
+            cursor.close();
+        }
+
+        return places;
+    }
+
+    private MyPlace populatePlace(MyPlace place) {
+        String[] imageUrls = getImageUrlsOfMyPlace(place);
+        Tip[] tips = getTipsOfMyPlace(place);
+        place.setImageUrls(imageUrls);
+        place.setTips(tips);
+        return place;
     }
 
     public String[] getImageUrlsOfMyPlace(MyPlace myPlace) {
@@ -79,58 +124,5 @@ public class QueryLoader extends AsyncTaskLoader<Object> {
             cursor.close();
         }
         return tips;
-    }
-
-    @Override
-    public MyPlace loadInBackground() {
-
-        MyPlace myPlace = null;
-
-        Uri uri = ShakeMeUpContract.FavoritePlace.CONTENT_URI.buildUpon()
-                .appendPath(placeId)
-                .build();
-
-        Log.d(this.getClass().getSimpleName(), uri.toString());
-
-        Cursor cursor = getContext().getContentResolver().query(uri, null, null, null, null);
-
-
-        if (cursor != null && cursor.moveToFirst()) {
-
-            /*
-            ShakeMeUpContract.FavoritePlace.COLUMN_PLACE_ID,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_NAME,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_ADDRESS,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_RATING,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_PRICE_RANGE,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_TRAVEL_TIME,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_LAT,
-                        ShakeMeUpContract.FavoritePlace.COLUMN_LNG
-             */
-
-            String placeId = cursor.getString(0);
-            String name = cursor.getString(1);
-            String address = cursor.getString(2);
-            double rating = cursor.getDouble(3);
-            int priceRange = cursor.getInt(4);
-            String travelTime = cursor.getString(5);
-            double lat = cursor.getDouble(6);
-            double lng = cursor.getDouble(7);
-            String foursquareUrl = cursor.getString(8);
-
-            myPlace = new MyPlace(placeId, lat, lng, name, address, rating, travelTime, priceRange, foursquareUrl);
-
-            cursor.close();
-        }
-
-        if (myPlace != null) {
-            String[] imageUrls = getImageUrlsOfMyPlace(myPlace);
-            Tip[] tips = getTipsOfMyPlace(myPlace);
-
-            myPlace.setImageUrls(imageUrls);
-            myPlace.setTips(tips);
-        }
-
-        return myPlace;
     }
 }
