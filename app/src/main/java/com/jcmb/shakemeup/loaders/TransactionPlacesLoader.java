@@ -80,7 +80,8 @@ public class TransactionPlacesLoader extends AsyncTaskLoader<Object> {
                     Log.e(TAG, "" + e.getMessage());
                 }
 
-            } else {
+            } else if (cursor != null) {
+                cursor.close();
                 Uri placeUri = contentResolver.insert(ShakeMeUpContract.FavoritePlace.CONTENT_URI,
                         values);
 

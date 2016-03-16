@@ -40,6 +40,19 @@ public class MyPlace implements Parcelable {
         this.name = name;
     }
 
+    /**
+     * Creates a new place
+     *
+     * @param id            The id of the place
+     * @param lat           The latitude of the place
+     * @param lng           The longitude of the place
+     * @param name          The name of the place
+     * @param address       The address of the place
+     * @param rating        The rating average of the place
+     * @param travelTime    The travel time of the place
+     * @param priceRange    The price range of the place
+     * @param foursquareUrl The place's Foursquare URL
+     */
     public MyPlace(String id, double lat, double lng, String name, String address, float rating,
                    String travelTime, int priceRange, String foursquareUrl) {
         this.id = id;
@@ -143,7 +156,7 @@ public class MyPlace implements Parcelable {
         parcel.writeDouble(lng);
         parcel.writeString(name);
         parcel.writeString(address);
-        parcel.writeDouble(rating);
+        parcel.writeFloat(rating);
         parcel.writeString(travelTime);
         parcel.writeInt(priceRange);
         parcel.writeString(foursquareUrl);

@@ -52,7 +52,6 @@ public class FavoritePlaceActivity extends AppCompatActivity
         FavoritePlaceFragment placeFragment =
                 (FavoritePlaceFragment) manager.findFragmentById(R.id.fragmentFavPlace);
         placeFragment.setPlace(place);
-        placeFragment.setHasOptionsMenu(true);
         listener = placeFragment;
     }
 

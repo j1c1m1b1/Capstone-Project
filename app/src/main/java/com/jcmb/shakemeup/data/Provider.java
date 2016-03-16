@@ -9,7 +9,6 @@ import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 /**
  * @author Julio Mendoza on 3/1/16.
@@ -89,8 +88,6 @@ public class Provider extends ContentProvider {
             Integer.parseInt(placeId);
             selection = ShakeMeUpContract.FavoritePlace._ID + " = ?";
         } catch (NumberFormatException e) {
-            Log.e(this.getClass().getSimpleName(), "" + e.getMessage());
-
             selection = ShakeMeUpContract.FavoritePlace.COLUMN_PLACE_ID + " LIKE ?";
 
             columns = new String[]

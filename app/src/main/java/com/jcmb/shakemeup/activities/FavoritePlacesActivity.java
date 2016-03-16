@@ -24,7 +24,6 @@ public class FavoritePlacesActivity extends AppCompatActivity {
     private FavoritePlaceFragment placeFragment;
     private boolean showIndicator;
     private FragmentManager manager;
-    private FrameLayout layoutContainer;
 
 
     @Override
@@ -40,7 +39,7 @@ public class FavoritePlacesActivity extends AppCompatActivity {
             actionBar.setTitle(R.string.favorite_places);
         }
 
-        layoutContainer = (FrameLayout) findViewById(R.id.layoutContainer);
+        FrameLayout layoutContainer = (FrameLayout) findViewById(R.id.layoutContainer);
 
         showIndicator = layoutContainer != null;
 
@@ -96,6 +95,5 @@ public class FavoritePlacesActivity extends AppCompatActivity {
         transaction.addToBackStack("" + position);
         transaction.commit();
     }
-
 
 }

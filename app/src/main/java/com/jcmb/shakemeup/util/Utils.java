@@ -10,6 +10,7 @@ import android.graphics.Canvas;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.location.Location;
+import android.os.Build;
 import android.os.Parcelable;
 import android.support.annotation.DrawableRes;
 import android.support.graphics.drawable.VectorDrawableCompat;
@@ -40,6 +41,7 @@ import io.codetail.animation.ViewAnimationUtils;
 public class Utils {
 
     private static final double EARTH_RADIUS = 6371;
+    private static final String TAG = Utils.class.getSimpleName();
     private static Utils instance;
     private Animator animator;
 
@@ -174,11 +176,8 @@ public class Utils {
     public static String parsePriceRange(int priceLevel, Context context) {
         priceLevel = priceLevel == -1 ? 0 : priceLevel;
         String priceRangeFormat = context.getString(R.string.price_range_format);
-        String priceRange = null;
+        String priceRange = String.format(priceRangeFormat, "$", "$$$$");
         switch (priceLevel) {
-            case 0:
-                priceRange = String.format(priceRangeFormat, "$", "$$$$");
-                break;
             case 1:
                 priceRange = String.format(priceRangeFormat, "$$", "$$$");
                 break;
@@ -199,6 +198,38 @@ public class Utils {
         BigDecimal bd = new BigDecimal(Float.toString(d));
         bd = bd.setScale(1, BigDecimal.ROUND_HALF_UP);
         return bd.floatValue();
+    }
+
+    public static void createCircularReveal(final View view) {
+        // get the center for the clipping circle
+        int cx = view.getWidth() / 2;
+        int cy = view.getHeight() / 2;
+
+        float endRadius = (float) Math.hypot(cx, cy);
+        Animator anim = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            anim = android.view.ViewAnimationUtils.createCircularReveal(view, cx, cy, 0, endRadius);
+        } else {
+            try {
+                anim = ViewAnimationUtils.createCircularReveal(view, cx, cy, 0, endRadius);
+            } catch (Exception e) {
+                Log.d(TAG, "" + e.getMessage());
+                view.setVisibility(View.VISIBLE);
+            }
+        }
+        if (anim != null) {
+            anim.addListener(new AnimatorListenerAdapter() {
+
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    super.onAnimationStart(animation);
+                    view.setVisibility(View.VISIBLE);
+                }
+            });
+            // start the animation
+            anim.start();
+        }
+
     }
 
     /**

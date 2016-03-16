@@ -42,9 +42,9 @@ public class FavoritePlacesLoader extends AsyncTaskLoader<ArrayList<MyPlace>> {
                 float rating = cursor.getFloat(4);
                 int priceRange = cursor.getInt(5);
                 String travelTime = cursor.getString(6);
-                double lat = cursor.getDouble(7);
-                double lng = cursor.getDouble(8);
-                String foursquareUrl = cursor.getString(9);
+                String foursquareUrl = cursor.getString(7);
+                double lat = cursor.getDouble(8);
+                double lng = cursor.getDouble(9);
 
                 place = new MyPlace(placeId, lat, lng, name, address, rating, travelTime,
                         priceRange, foursquareUrl);

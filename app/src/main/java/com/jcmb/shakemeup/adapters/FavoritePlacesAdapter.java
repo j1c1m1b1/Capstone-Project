@@ -49,7 +49,7 @@ public class FavoritePlacesAdapter extends RecyclerView.Adapter<FavoritePlacesAd
 
             MyPlace place = places.get(position);
 
-            boolean selected = position == selection && showIndicator;
+            boolean selected = (position == selection) && showIndicator;
 
             holder.bind(place, selected, position);
         }

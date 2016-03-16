@@ -17,10 +17,12 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatRatingBar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.ShareActionProvider;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -51,8 +53,6 @@ import com.jcmb.shakemeup.views.TipView;
 
 import java.util.Locale;
 
-import fr.castorflex.android.circularprogressbar.CircularProgressBar;
-
 
 /**
  * @author Julio Mendoza on 3/13/16.
@@ -77,8 +77,6 @@ public class FavoritePlaceFragment extends Fragment
 
     private TextView tvDuration;
 
-    private CircularProgressBar pbLoading;
-
     private LinearLayout layoutVenue;
 
     private RecyclerView rvPhotos;
@@ -95,7 +93,7 @@ public class FavoritePlaceFragment extends Fragment
 
     private int animationDuration;
 
-    private boolean isFavorite = true;
+    private boolean isFavorite;
 
     private String uriString;
 
@@ -122,9 +120,21 @@ public class FavoritePlaceFragment extends Fragment
     public View onCreateView(LayoutInflater inflater,
                              @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-
         view = LayoutInflater.from(getContext())
                 .inflate(R.layout.fragment_favorite_place, container, false);
+
+        rootView = (CoordinatorLayout) view.findViewById(R.id.coordinatorLayout);
+
+        view.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View view, int i, int i1, int i2, int i3, int i4, int i5,
+                                       int i6, int i7) {
+
+                view.removeOnLayoutChangeListener(this);
+                Utils.createCircularReveal(rootView);
+            }
+        });
+
         Bundle args = getArguments();
         if (args != null) {
             place = getArguments().getParcelable(PLACE);
@@ -132,10 +142,7 @@ public class FavoritePlaceFragment extends Fragment
             place = savedInstanceState.getParcelable(PLACE);
         }
 
-        if (place != null) {
-            initUI(view);
-        }
-
+        initUI();
         return view;
     }
 
@@ -143,12 +150,27 @@ public class FavoritePlaceFragment extends Fragment
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         animationDuration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
+        Toolbar toolbar = (Toolbar) view.findViewById(R.id.toolbar);
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        activity.setSupportActionBar(toolbar);
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(PLACE, place);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        bindPlace();
     }
 
     @Override
@@ -161,12 +183,10 @@ public class FavoritePlaceFragment extends Fragment
 
     public void setPlace(MyPlace place) {
         this.place = place;
-        initUI(view);
+        bindPlace();
     }
 
-    private void initUI(View view) {
-        rootView = (CoordinatorLayout) view.findViewById(R.id.rootView);
-
+    private void initUI() {
         toolbarLayout = (CollapsingToolbarLayout) view.findViewById(R.id.toolbar_layout);
 
         ivPlace = (ImageView) view.findViewById(R.id.ivPlace);
@@ -178,8 +198,6 @@ public class FavoritePlaceFragment extends Fragment
         tvPriceRange = (TextView) view.findViewById(R.id.tvPriceRange);
 
         tvDuration = (TextView) view.findViewById(R.id.tvDistance);
-
-        pbLoading = (CircularProgressBar) view.findViewById(R.id.pbLoading);
 
         layoutVenue = (LinearLayout) view.findViewById(R.id.layoutVenue);
 
@@ -203,8 +221,6 @@ public class FavoritePlaceFragment extends Fragment
                 LinearLayoutManager.HORIZONTAL, false);
 
         rvPhotos.setLayoutManager(manager);
-
-        bindPlace();
     }
 
     private void bindPlace() {
@@ -225,8 +241,6 @@ public class FavoritePlaceFragment extends Fragment
         if (!place.getTravelTime().isEmpty()) {
             tvDuration.setText(place.getTravelTime());
         }
-
-        pbLoading.setVisibility(View.GONE);
 
         if (place.getImageUrls() != null) {
             imageUrls = place.getImageUrls();
@@ -323,6 +337,8 @@ public class FavoritePlaceFragment extends Fragment
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+
+        super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_place, menu);
     }
 
@@ -340,6 +356,7 @@ public class FavoritePlaceFragment extends Fragment
             shareItem.setEnabled(true);
             shareItem.setVisible(true);
         }
+        super.onPrepareOptionsMenu(menu);
     }
 
     @Override

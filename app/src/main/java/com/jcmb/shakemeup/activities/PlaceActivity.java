@@ -1,6 +1,7 @@
 package com.jcmb.shakemeup.activities;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -188,6 +189,15 @@ public class PlaceActivity extends ShakeActivity
 
         rootView = (CoordinatorLayout) findViewById(R.id.rootView);
 
+        rootView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View view, int i, int i1, int i2, int i3, int i4,
+                                       int i5, int i6, int i7) {
+                rootView.removeOnLayoutChangeListener(this);
+                Utils.createCircularReveal(rootView);
+            }
+        });
+
         toolbarLayout = (CollapsingToolbarLayout)findViewById(R.id.toolbar_layout);
 
         ivPlace = (ImageView)findViewById(R.id.ivPlace);
@@ -253,7 +263,6 @@ public class PlaceActivity extends ShakeActivity
         if(intent != null && intent.hasExtra(PLACE_ID))
         {
             placeId = intent.getStringExtra(PLACE_ID);
-            Log.d(TAG, placeId);
             pickupLat = intent.getDoubleExtra(PICKUP_LATITUDE, -1.0d);
             pickupLng = intent.getDoubleExtra(PICKUP_LONGITUDE, -1.0d);
             pickupAddress = intent.getStringExtra(PICKUP_ADDRESS);
@@ -340,8 +349,6 @@ public class PlaceActivity extends ShakeActivity
                                 rating = Utils.round(place.getRating() * 10);
                             }
 
-                            Log.d(TAG, "" + place.getRating());
-
                             myPlace = new MyPlace(placeId, lat, lng, place.getName().toString(),
                                     place.getAddress().toString(), rating,
                                     "", place.getPriceLevel(), null);
@@ -381,7 +388,7 @@ public class PlaceActivity extends ShakeActivity
 
         setupMap(latLng);
 
-        pbLoading.setVisibility(View.GONE);
+        hideProgressBar();
 
         if (myPlace.getImageUrls() != null) {
             imageUrls = myPlace.getImageUrls();
@@ -399,6 +406,18 @@ public class PlaceActivity extends ShakeActivity
                 myPlace.getName(), myPlace.getAddress());
 
         updateFavoriteButton();
+    }
+
+    private void hideProgressBar() {
+
+        pbLoading.animate().scaleX(0).scaleY(0).setDuration(animationDuration)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        pbLoading.setVisibility(View.GONE);
+                    }
+                }).start();
     }
 
     private void initializeShareIntent(double lat, double lng) {
@@ -510,9 +529,6 @@ public class PlaceActivity extends ShakeActivity
 
         final String clientSecret = getString(R.string.foursquare_client_secret);
 
-        Log.d(PlaceActivity.class.getSimpleName(), "Req Info: " + lat + ", " + lng
-                + ", " + placeName);
-
         Requests.getFoursquareVenuesAt(lat, lng, placeName, clientId, clientSecret,
                 new OnVenuesRequestCompleteListener() {
 
@@ -526,7 +542,7 @@ public class PlaceActivity extends ShakeActivity
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        pbLoading.setVisibility(View.GONE);
+                                        hideProgressBar();
                                     }
                                 });
                             }
@@ -575,7 +591,7 @@ public class PlaceActivity extends ShakeActivity
         bindTips();
         bindImageUrls();
 
-        pbLoading.setVisibility(View.GONE);
+        hideProgressBar();
     }
 
     private void bindTips()
@@ -646,8 +662,6 @@ public class PlaceActivity extends ShakeActivity
             @Override
             public void onResult(@NonNull PlacePhotoResult placePhotoResult) {
                 if (placePhotoResult.getStatus().isSuccess()) {
-
-                    Log.d(TAG, "Image Load Success");
 
                     Bitmap bitmap = placePhotoResult.getBitmap();
 
