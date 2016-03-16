@@ -70,6 +70,14 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     private static final String SQL_DELETE_TIPS =
             DROP + ShakeMeUpContract.Tip.TABLE_NAME;
 
+    private static final String SQL_CREATE_WIDGET_PLACES =
+            "CREATE TABLE " + ShakeMeUpContract.WidgetPlace.TABLE_NAME + " (" +
+                    ShakeMeUpContract.WidgetPlace._ID + " INTEGER PRIMARY KEY," +
+                    ShakeMeUpContract.WidgetPlace.COLUMN_PLACE_ID + TEXT_TYPE + COMMA_SEP +
+                    ShakeMeUpContract.WidgetPlace.COLUMN_NAME + TEXT_TYPE + " )";
+
+    private static final String SQL_DELETE_WIDGET_PLACES =
+            DROP + ShakeMeUpContract.WidgetPlace.TABLE_NAME;
 
     public SQLiteHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -80,6 +88,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(SQL_CREATE_FAVORITES);
         sqLiteDatabase.execSQL(SQL_CREATE_PLACE_IMAGES);
         sqLiteDatabase.execSQL(SQL_CREATE_TIPS);
+        sqLiteDatabase.execSQL(SQL_CREATE_WIDGET_PLACES);
     }
 
     @Override
@@ -87,6 +96,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(SQL_DELETE_TIPS);
         sqLiteDatabase.execSQL(SQL_DELETE_PLACE_IMAGES);
         sqLiteDatabase.execSQL(SQL_DELETE_FAVORITES);
+        sqLiteDatabase.execSQL(SQL_DELETE_WIDGET_PLACES);
         onCreate(sqLiteDatabase);
     }
 }

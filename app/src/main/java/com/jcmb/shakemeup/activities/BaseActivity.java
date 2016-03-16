@@ -38,7 +38,7 @@ import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.connection.Requests;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
 import com.jcmb.shakemeup.places.Parser;
-import com.jcmb.shakemeup.sync.SMUSyncAdapter;
+import com.jcmb.shakemeup.sync.SyncAdapter;
 import com.jcmb.shakemeup.util.ShakeDetector;
 import com.jcmb.shakemeup.util.Utils;
 
@@ -374,7 +374,7 @@ public class BaseActivity extends AppCompatActivity implements GoogleApiClient.C
                             SharedPreferences.Editor editor = prefs.edit();
                             editor.putString(ADDRESS, currentAddress);
                             editor.apply();
-                            SMUSyncAdapter.syncImmediately(BaseActivity.this);
+                            SyncAdapter.syncImmediately(BaseActivity.this);
                         } else {
                             Log.e(MainActivity.class.getSimpleName(),
                                     "Error getting current location address");

@@ -95,7 +95,7 @@ public class FavoritePlaceFragment extends Fragment
 
     private int animationDuration;
 
-    private boolean isFavorite;
+    private boolean isFavorite = true;
 
     private String uriString;
 
@@ -210,7 +210,7 @@ public class FavoritePlaceFragment extends Fragment
     private void bindPlace() {
         toolbarLayout.setTitle(place.getName());
 
-        rbPlace.setRating((float) place.getRating());
+        rbPlace.setRating(place.getRating());
 
         tvByline.setText(place.getAddress());
 

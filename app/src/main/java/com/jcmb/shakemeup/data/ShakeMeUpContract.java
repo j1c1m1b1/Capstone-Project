@@ -22,6 +22,8 @@ public final class ShakeMeUpContract {
 
     public static final String TIPS_PATH = "tips";
 
+    public static final String WIDGET_PLACES_PATH = "widget_places";
+
     public ShakeMeUpContract() {
     }
 
@@ -91,5 +93,21 @@ public final class ShakeMeUpContract {
         public static final String COLUMN_USER_NAME = "user_name";
 
         public static final String COLUMN_BODY = "body";
+    }
+
+    public static abstract class WidgetPlace implements BaseColumns {
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(WIDGET_PLACES_PATH).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/"
+                        + WIDGET_PLACES_PATH;
+
+        public static final String TABLE_NAME = "widget_place";
+
+        public static final String COLUMN_PLACE_ID = "placeID";
+
+        public static final String COLUMN_NAME = "name";
+
     }
 }

@@ -6,4 +6,4 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activities.FavoritePlaceActivity"
-    tools:layout="@layout/fragment_favorite_place"></fragment>
+    tools:layout="@layout/fragment_favorite_place" />

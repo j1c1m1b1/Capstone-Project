@@ -8,37 +8,24 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.jcmb.shakemeup.R;
-import com.jcmb.shakemeup.activities.BaseActivity;
 import com.jcmb.shakemeup.activities.MainActivity;
 import com.jcmb.shakemeup.activities.PlaceActivity;
-import com.jcmb.shakemeup.places.MyPlace;
-import com.jcmb.shakemeup.sync.SMUSyncAdapter;
-import com.jcmb.shakemeup.util.Utils;
 
 /**
  * @author Julio Mendoza on 3/15/16.
  */
 public class WidgetProvider extends AppWidgetProvider {
 
-    private MyPlace[] places;
-
-    private double lat;
-
-    private double lng;
-
-    private String address;
+    private static final String TAG = WidgetProvider.class.getSimpleName();
 
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
         if (intent.getAction().equals(context.getString(R.string.widget_action))) {
-            places = Utils.convertParcelableToPlaces(intent.getParcelableArrayExtra(SMUSyncAdapter.PLACES));
-            lat = intent.getDoubleExtra(BaseActivity.LOCATION_LAT, 0);
-            lng = intent.getDoubleExtra(BaseActivity.LOCATION_LNG, 0);
-            address = intent.getStringExtra(BaseActivity.ADDRESS);
 
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             int[] appWidgetsIds = appWidgetManager
@@ -51,6 +38,8 @@ public class WidgetProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
+
+        Log.d(TAG, "onUpdate");
 
         for (int appWidgetId : appWidgetIds) {
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_places);
@@ -83,10 +72,6 @@ public class WidgetProvider extends AppWidgetProvider {
     private void setRemoteAdapter(Context context, @NonNull final RemoteViews views) {
 
         Intent intent = new Intent(context, WidgetService.class);
-        intent.putExtra(SMUSyncAdapter.PLACES, places);
-        intent.putExtra(BaseActivity.LOCATION_LAT, lat);
-        intent.putExtra(BaseActivity.LOCATION_LNG, lng);
-        intent.putExtra(BaseActivity.ADDRESS, address);
         views.setRemoteAdapter(R.id.listWidget,
                 intent);
     }

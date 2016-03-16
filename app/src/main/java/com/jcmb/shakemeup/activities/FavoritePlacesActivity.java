@@ -8,14 +8,12 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.widget.FrameLayout;
 
 import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.fragments.FavoritePlaceFragment;
 import com.jcmb.shakemeup.fragments.FavoritePlacesFragment;
 import com.jcmb.shakemeup.places.MyPlace;
-import com.jcmb.shakemeup.util.Utils;
 
 /**
  * @author Julio Mendoza on 3/2/16.
@@ -97,10 +95,6 @@ public class FavoritePlacesActivity extends AppCompatActivity {
         transaction.add(R.id.layoutContainer, placeFragment);
         transaction.addToBackStack("" + position);
         transaction.commit();
-
-        if (layoutContainer.getVisibility() == View.GONE) {
-            Utils.expandHorizontal(layoutContainer);
-        }
     }
 
 

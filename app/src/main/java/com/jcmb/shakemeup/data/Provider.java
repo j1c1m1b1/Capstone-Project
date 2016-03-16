@@ -27,6 +27,8 @@ public class Provider extends ContentProvider {
 
     private static final int TIPS = 300;
 
+    private static final int WIDGET_PLACES = 400;
+
     private UriMatcher matcher = buildUriMatcher();
 
     private SQLiteHelper helper;
@@ -44,6 +46,8 @@ public class Provider extends ContentProvider {
         matcher.addURI(authority, ShakeMeUpContract.PLACE_IMAGES_PATH, PLACE_IMAGES);
 
         matcher.addURI(authority, ShakeMeUpContract.TIPS_PATH, TIPS);
+
+        matcher.addURI(authority, ShakeMeUpContract.WIDGET_PLACES_PATH, WIDGET_PLACES);
         return matcher;
     }
 
@@ -132,6 +136,15 @@ public class Provider extends ContentProvider {
                 projection, selection, selectionArgs, null, null, null);
     }
 
+    private Cursor getWidgetPlaces() {
+        Cursor cursor;
+        SQLiteDatabase db = helper.getReadableDatabase();
+        cursor = db.query(ShakeMeUpContract.WidgetPlace.TABLE_NAME, null, null, null, null,
+                null, null);
+
+        return cursor;
+    }
+
 
     @Override
     public boolean onCreate() {
@@ -164,6 +177,9 @@ public class Provider extends ContentProvider {
             case TIPS:
                 cursor = getTips(uri, projection);
                 break;
+            case WIDGET_PLACES:
+                cursor = getWidgetPlaces();
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown URI: " + uri);
         }
@@ -192,6 +208,9 @@ public class Provider extends ContentProvider {
                 break;
             case TIPS:
                 contentType = ShakeMeUpContract.Tip.CONTENT_TYPE;
+                break;
+            case WIDGET_PLACES:
+                contentType = ShakeMeUpContract.WidgetPlace.CONTENT_TYPE;
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -239,6 +258,11 @@ public class Provider extends ContentProvider {
                 rowsDeleted = db.delete(ShakeMeUpContract.Tip.TABLE_NAME, selection,
                         selectionArgs);
                 break;
+            case WIDGET_PLACES:
+                rowsDeleted = db.delete(ShakeMeUpContract.WidgetPlace.TABLE_NAME, selection,
+                        selectionArgs);
+                break;
+
             default:
                 throw new UnsupportedOperationException("Unknown URI " + uri);
         }
@@ -317,6 +341,21 @@ public class Provider extends ContentProvider {
                 try {
                     for (ContentValues v : values) {
                         id = db.insert(ShakeMeUpContract.Tip.TABLE_NAME, null, v);
+                        if (id != -1) {
+                            insertedRows++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return insertedRows;
+            case WIDGET_PLACES:
+                db.beginTransaction();
+                try {
+                    for (ContentValues v : values) {
+                        id = db.insert(ShakeMeUpContract.WidgetPlace.TABLE_NAME, null, v);
                         if (id != -1) {
                             insertedRows++;
                         }

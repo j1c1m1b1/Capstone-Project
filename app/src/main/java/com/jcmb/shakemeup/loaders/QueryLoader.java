@@ -111,7 +111,7 @@ public class QueryLoader extends AsyncTaskLoader<Object> {
             String placeId = cursor.getString(0);
             String name = cursor.getString(1);
             String address = cursor.getString(2);
-            double rating = cursor.getDouble(3);
+            float rating = cursor.getFloat(3);
             int priceRange = cursor.getInt(4);
             String travelTime = cursor.getString(5);
             double lat = cursor.getDouble(6);

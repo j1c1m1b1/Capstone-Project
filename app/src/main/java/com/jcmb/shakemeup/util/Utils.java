@@ -28,6 +28,7 @@ import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.places.MyPlace;
 import com.jcmb.shakemeup.places.Tip;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 
 import io.codetail.animation.SupportAnimator;
@@ -192,6 +193,12 @@ public class Utils {
                 break;
         }
         return priceRange;
+    }
+
+    public static float round(float d) {
+        BigDecimal bd = new BigDecimal(Float.toString(d));
+        bd = bd.setScale(1, BigDecimal.ROUND_HALF_UP);
+        return bd.floatValue();
     }
 
     /**

@@ -1,6 +1,8 @@
 package com.jcmb.shakemeup.widget;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Binder;
 import android.util.Log;
 import android.widget.AdapterView;
@@ -10,9 +12,8 @@ import android.widget.RemoteViewsService;
 import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.activities.BaseActivity;
 import com.jcmb.shakemeup.activities.PlaceActivity;
-import com.jcmb.shakemeup.places.MyPlace;
-import com.jcmb.shakemeup.sync.SMUSyncAdapter;
-import com.jcmb.shakemeup.util.Utils;
+import com.jcmb.shakemeup.activities.SplashActivity;
+import com.jcmb.shakemeup.data.ShakeMeUpContract;
 
 import java.util.ArrayList;
 
@@ -27,73 +28,79 @@ public class WidgetService extends RemoteViewsService {
     public RemoteViewsFactory onGetViewFactory(final Intent intent) {
         return new RemoteViewsFactory() {
 
-            private MyPlace[] places;
-            private double lat;
-            private double lng;
-            private String currentAddress;
+            private Cursor cursor = null;
 
             @Override
             public void onCreate() {
 
-                Log.d(TAG, "Factory Created");
-                lat = intent.getDoubleExtra(BaseActivity.LOCATION_LAT, 0);
-                lng = intent.getDoubleExtra(BaseActivity.LOCATION_LNG, 0);
-                currentAddress = intent.getStringExtra(BaseActivity.ADDRESS);
-                places =
-                        Utils.convertParcelableToPlaces(intent.getParcelableArrayExtra(SMUSyncAdapter.PLACES));
             }
 
             @Override
             public void onDataSetChanged() {
-                final long identityToken = Binder.clearCallingIdentity();
+
                 Log.d(TAG, "Data set changed");
-                lat = intent.getDoubleExtra(BaseActivity.LOCATION_LAT, 0);
-                lng = intent.getDoubleExtra(BaseActivity.LOCATION_LNG, 0);
-                currentAddress = intent.getStringExtra(BaseActivity.ADDRESS);
-                places =
-                        Utils.convertParcelableToPlaces(intent.getParcelableArrayExtra(SMUSyncAdapter.PLACES));
+
+                if (cursor != null) {
+                    cursor.close();
+                }
+
+                final long identityToken = Binder.clearCallingIdentity();
+                cursor = getContentResolver().query(ShakeMeUpContract.WidgetPlace.CONTENT_URI,
+                        null, null, null, null);
                 Binder.restoreCallingIdentity(identityToken);
             }
 
             @Override
             public void onDestroy() {
-                places = null;
+                if (cursor != null) {
+                    cursor.close();
+                    cursor = null;
+                }
             }
 
             @Override
             public int getCount() {
-                return places == null ? 0 : places.length;
+                return cursor == null ? 0 : cursor.getCount();
             }
 
             @Override
             public RemoteViews getViewAt(int i) {
 
-                if (i == AdapterView.INVALID_POSITION || places == null
-                        || places.length == 0 || i > places.length) {
+                if (i == AdapterView.INVALID_POSITION || cursor == null || !cursor.moveToPosition(i)) {
                     return null;
                 }
 
-                MyPlace place = places[i];
-
-                String id, name, address;
-
-                id = place.getId();
-
                 ArrayList<String> placeIDs = new ArrayList<>();
 
-                for (MyPlace myPlace : places) {
-                    if (!myPlace.getId().equals(id)) {
-                        placeIDs.add(myPlace.getId());
-                    }
+                cursor.moveToFirst();
+
+                do {
+                    placeIDs.add(cursor.getString(1));
                 }
+                while (cursor.moveToNext());
+
+                cursor.moveToPosition(i);
+
+                String id, name;
+
+                double rating;
+
+                id = cursor.getString(1);
+
+                placeIDs.remove(id);
+
                 RemoteViews views = new RemoteViews(getPackageName(), R.layout.item_widget_places);
 
-                name = place.getName();
-
-                address = place.getAddress();
+                name = cursor.getString(2);
 
                 views.setTextViewText(R.id.tvPlaceName, name);
-                views.setTextViewText(R.id.tvPlaceAddress, address);
+
+                SharedPreferences prefs = getSharedPreferences(SplashActivity.PREFS, MODE_PRIVATE);
+
+                final double lat = Double.longBitsToDouble(prefs.getLong(BaseActivity.LOCATION_LAT, 0));
+                final double lng = Double.longBitsToDouble(prefs.getLong(BaseActivity.LOCATION_LNG, 0));
+
+                final String currentAddress = prefs.getString(BaseActivity.ADDRESS, "");
 
                 Intent intent = new Intent();
                 intent.putExtra(PlaceActivity.PICKUP_LATITUDE, lat);

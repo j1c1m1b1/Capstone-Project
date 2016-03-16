@@ -334,8 +334,16 @@ public class PlaceActivity extends ShakeActivity
                             double lat = place.getLatLng().latitude;
                             double lng = place.getLatLng().longitude;
 
+                            float rating = 3.0f;
+
+                            if (place.getRating() != -1.0f) {
+                                rating = Utils.round(place.getRating() * 10);
+                            }
+
+                            Log.d(TAG, "" + place.getRating());
+
                             myPlace = new MyPlace(placeId, lat, lng, place.getName().toString(),
-                                    place.getAddress().toString(), place.getRating(),
+                                    place.getAddress().toString(), rating,
                                     "", place.getPriceLevel(), null);
 
                             bindPlace();
@@ -353,7 +361,7 @@ public class PlaceActivity extends ShakeActivity
     private void bindPlace() {
         toolbarLayout.setTitle(myPlace.getName());
 
-        rbPlace.setRating((float) myPlace.getRating());
+        rbPlace.setRating(myPlace.getRating());
 
         tvByline.setText(myPlace.getAddress());
 

@@ -2,12 +2,13 @@ package com.jcmb.shakemeup.places;
 
 import android.util.Log;
 
+import com.jcmb.shakemeup.util.Utils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 /**
  * @author Julio Mendoza on 1/7/16.
@@ -49,6 +50,7 @@ public class Parser {
     private static final String LOCATION = "location";
     private static final String LAT = "lat";
     private static final String LNG = "lng";
+    private static final String RATING = "rating";
 
 
     public static String getAddress(JSONObject jsonResponse)
@@ -74,34 +76,6 @@ public class Parser {
         return  address;
     }
 
-    public static String getPlaceId(JSONObject jsonResponse)
-    {
-        String id = null;
-
-        try {
-            if(!jsonResponse.isNull(RESULTS))
-            {
-                JSONArray results = jsonResponse.getJSONArray(RESULTS);
-
-                if(results.length() > 0)
-                {
-                    Random random = new Random();
-
-                    int index = random.nextInt(results.length());
-
-                    JSONObject jsonPlace = results.getJSONObject(index);
-
-                    id = jsonPlace.getString(PLACE_ID);
-                }
-
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        return id;
-    }
-
     public static MyPlace[] getPlaces(JSONObject jsonResponse) {
         MyPlace[] myPlaces = null;
         try {
@@ -116,6 +90,8 @@ public class Parser {
                     String id, name;
 
                     double lat, lng;
+
+                    float rating = 0.0f;
 
                     MyPlace myPlace;
 
@@ -134,7 +110,13 @@ public class Parser {
 
                         name = jsonPlace.getString(NAME);
 
+                        if (jsonPlace.has(RATING)) {
+                            rating = Utils.round((float) jsonPlace.getDouble(RATING));
+                        }
+
                         myPlace = new MyPlace(id, lat, lng, name);
+
+                        myPlace.setRating(rating);
 
                         myPlaces[i] = myPlace;
                     }

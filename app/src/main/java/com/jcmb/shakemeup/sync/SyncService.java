@@ -12,14 +12,14 @@ public class SyncService extends Service {
 
     private static final Object sSyncAdapterLock = new Object();
 
-    private static SMUSyncAdapter syncAdapter = null;
+    private static SyncAdapter syncAdapter = null;
 
 
     @Override
     public void onCreate() {
         synchronized (sSyncAdapterLock) {
             if (syncAdapter == null) {
-                syncAdapter = new SMUSyncAdapter(getApplicationContext(), true);
+                syncAdapter = new SyncAdapter(getApplicationContext(), true);
             }
         }
     }

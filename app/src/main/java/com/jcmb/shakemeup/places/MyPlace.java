@@ -25,7 +25,7 @@ public class MyPlace implements Parcelable {
     private double lng;
     private String name;
     private String address;
-    private double rating;
+    private float rating;
     private String travelTime;
     private int priceRange;
     private String foursquareUrl;
@@ -40,7 +40,7 @@ public class MyPlace implements Parcelable {
         this.name = name;
     }
 
-    public MyPlace(String id, double lat, double lng, String name, String address, double rating,
+    public MyPlace(String id, double lat, double lng, String name, String address, float rating,
                    String travelTime, int priceRange, String foursquareUrl) {
         this.id = id;
         this.lat = lat;
@@ -59,7 +59,7 @@ public class MyPlace implements Parcelable {
         lng = in.readDouble();
         name = in.readString();
         address = in.readString();
-        rating = in.readDouble();
+        rating = in.readFloat();
         travelTime = in.readString();
         priceRange = in.readInt();
         foursquareUrl = in.readString();
@@ -87,8 +87,12 @@ public class MyPlace implements Parcelable {
         return address;
     }
 
-    public double getRating() {
+    public float getRating() {
         return rating;
+    }
+
+    public void setRating(float rating) {
+        this.rating = rating;
     }
 
     public String getTravelTime() {

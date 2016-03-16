@@ -4,37 +4,46 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
+import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.OperationApplicationException;
 import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.RemoteException;
+import android.util.Log;
 
 import com.jcmb.shakemeup.R;
 import com.jcmb.shakemeup.activities.BaseActivity;
 import com.jcmb.shakemeup.activities.SplashActivity;
 import com.jcmb.shakemeup.connection.Requests;
+import com.jcmb.shakemeup.data.ShakeMeUpContract;
 import com.jcmb.shakemeup.interfaces.OnRequestCompleteListener;
 import com.jcmb.shakemeup.places.MyPlace;
 import com.jcmb.shakemeup.places.Parser;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 /**
  * @author Julio Mendoza on 3/15/16.
  */
-public class SMUSyncAdapter extends AbstractThreadedSyncAdapter {
+public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
     public static final int SYNC_INTERVAL = 60 * 180;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
 
-    public static final String PLACES = "places";
+    private static final String TAG = SyncAdapter.class.getSimpleName();
 
-    public SMUSyncAdapter(Context context, boolean autoInitialize) {
+    public SyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
     }
 
@@ -90,7 +99,7 @@ public class SMUSyncAdapter extends AbstractThreadedSyncAdapter {
         /*
          * Since we've created an account
          */
-        SMUSyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
+        SyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
 
         /*
          * Without calling setSyncAutomatically, our periodic sync will not be enabled.
@@ -118,7 +127,7 @@ public class SMUSyncAdapter extends AbstractThreadedSyncAdapter {
 
     @Override
     public void onPerformSync(Account account, Bundle bundle, String s,
-                              ContentProviderClient contentProviderClient, SyncResult syncResult) {
+                              final ContentProviderClient contentProviderClient, SyncResult syncResult) {
 
         SharedPreferences prefs = getContext().getSharedPreferences(SplashActivity.PREFS,
                 Context.MODE_PRIVATE);
@@ -127,7 +136,6 @@ public class SMUSyncAdapter extends AbstractThreadedSyncAdapter {
             final double lat = Double.longBitsToDouble(prefs.getLong(BaseActivity.LOCATION_LAT, 0));
             final double lng = Double.longBitsToDouble(prefs.getLong(BaseActivity.LOCATION_LNG, 0));
 
-            final String address = prefs.getString(BaseActivity.ADDRESS, "");
             Location location = new Location("");
             location.setLatitude(lat);
             location.setLongitude(lng);
@@ -137,7 +145,10 @@ public class SMUSyncAdapter extends AbstractThreadedSyncAdapter {
                 public void onComplete(JSONObject jsonResponse, int status) {
                     if (status == Requests.SERVICE_STATUS_SUCCESS) {
                         MyPlace[] places = Parser.getPlaces(jsonResponse);
-                        updateWidget(places, lat, lng, address);
+
+                        insertPlaces(contentProviderClient, places);
+
+                        updateWidget();
                     }
                 }
             };
@@ -147,7 +158,50 @@ public class SMUSyncAdapter extends AbstractThreadedSyncAdapter {
 
     }
 
-    private void updateWidget(MyPlace[] places, double lat, double lng, String address) {
+    private void insertPlaces(ContentProviderClient contentProviderClient, MyPlace[] places) {
+        ContentValues[] valuesArray = new ContentValues[places.length];
+        ContentValues values;
+        MyPlace place;
+
+        for (int i = 0; i < places.length; i++) {
+            place = places[i];
+            values = new ContentValues();
+
+            values.put(ShakeMeUpContract.WidgetPlace.COLUMN_PLACE_ID, place.getId());
+            values.put(ShakeMeUpContract.WidgetPlace.COLUMN_NAME, place.getName());
+
+            valuesArray[i] = values;
+        }
+
+        try {
+
+            ContentProviderOperation operation;
+            Uri uri = ShakeMeUpContract.WidgetPlace.CONTENT_URI;
+            ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+            String selection = ShakeMeUpContract.WidgetPlace.COLUMN_PLACE_ID + " = ?";
+            String[] selectionArgs;
+            for (MyPlace myPlace : places) {
+                selectionArgs = new String[]{myPlace.getId()};
+                operation = ContentProviderOperation.newDelete(uri)
+                        .withSelection(selection, selectionArgs)
+                        .build();
+                ops.add(operation);
+            }
+
+            contentProviderClient.applyBatch(ops);
+
+            contentProviderClient.bulkInsert(ShakeMeUpContract.WidgetPlace.CONTENT_URI, valuesArray);
+
+            updateWidget();
+        } catch (RemoteException | OperationApplicationException e) {
+            Log.e(TAG, "Sync Failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void updateWidget() {
+
+        Log.d(TAG, "Update Widget");
 
         Context context = getContext();
 
@@ -155,11 +209,6 @@ public class SMUSyncAdapter extends AbstractThreadedSyncAdapter {
 
         Intent broadcastIntent = new Intent(action)
                 .setPackage(context.getPackageName());
-
-        broadcastIntent.putExtra(PLACES, places);
-        broadcastIntent.putExtra(BaseActivity.LOCATION_LAT, lat);
-        broadcastIntent.putExtra(BaseActivity.LOCATION_LNG, lng);
-        broadcastIntent.putExtra(BaseActivity.ADDRESS, address);
 
         context.sendBroadcast(broadcastIntent);
     }
