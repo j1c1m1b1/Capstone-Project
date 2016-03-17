@@ -5,7 +5,7 @@ android {
         config {
             keyAlias 'releasekey'
             keyPassword 'android'
-            storeFile file('../releasekey.jks')
+            storeFile file('releasekey.jks')
             storePassword 'android'
         }
     }
